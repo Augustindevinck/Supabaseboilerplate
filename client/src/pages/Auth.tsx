@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
@@ -37,7 +39,6 @@ export default function AuthPage() {
         });
         if (error) throw error;
         toast({ title: "Account created", description: "Please check your email to verify your account." });
-        // Optional: redirect or show check email message
       }
     } catch (error: any) {
       toast({
@@ -46,6 +47,26 @@ export default function AuthPage() {
         description: error.message,
       });
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
       setIsLoading(false);
     }
   };
@@ -62,39 +83,58 @@ export default function AuthPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="h-11"
-              />
-            </div>
+          <div className="space-y-4">
             <Button 
-              type="submit" 
-              className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20" 
+              type="button"
+              variant="outline" 
+              className="w-full h-11 text-base font-semibold"
+              onClick={handleGoogleAuth}
               disabled={isLoading}
+              data-testid="button-google-auth"
             >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLogin ? "Sign In" : "Sign Up"}
+              <SiGoogle className="mr-2 h-5 w-5" />
+              {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
-          </form>
+
+            <Separator className="my-4" />
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-11"
+                  data-testid="input-email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="h-11"
+                  data-testid="input-password"
+                />
+              </div>
+              <Button 
+                type="submit" 
+                className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20" 
+                disabled={isLoading}
+                data-testid="button-auth-submit"
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLogin ? "Sign In" : "Sign Up"}
+              </Button>
+            </form>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button 
