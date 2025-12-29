@@ -69,7 +69,7 @@ export default function Landing() {
       <FloatingHeader />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-20">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-32">
         {/* Abstract Background Shapes */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-3xl -z-10" />
