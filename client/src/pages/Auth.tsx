@@ -31,11 +31,15 @@ export default function AuthPage() {
         });
         if (error) throw error;
         toast({ title: "Welcome back!", description: "Successfully logged in." });
-        setLocation("/dashboard");
+        // No need for setLocation("/dashboard") here as App.tsx will handle the redirect
+        // when the auth state changes and the user is detected.
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          }
         });
         if (error) throw error;
         toast({ title: "Account created", description: "Please check your email to verify your account." });

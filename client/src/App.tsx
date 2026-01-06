@@ -36,12 +36,20 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
+  const { user } = useAuth();
+
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path="/" component={Landing} />
-      <Route path="/login" component={AuthPage} />
-      <Route path="/register" component={AuthPage} />
+      <Route path="/">
+        {user ? <Redirect to="/dashboard" /> : <Landing />}
+      </Route>
+      <Route path="/login">
+        {user ? <Redirect to="/dashboard" /> : <AuthPage />}
+      </Route>
+      <Route path="/register">
+        {user ? <Redirect to="/dashboard" /> : <AuthPage />}
+      </Route>
 
       {/* Protected Routes */}
       <Route path="/dashboard">
