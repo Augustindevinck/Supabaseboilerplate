@@ -96,9 +96,9 @@ export default function AdminPage() {
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
       await updateProfile({ id, updates: { is_subscriber: !current } });
-      toast({ title: "Profile Updated", description: "Subscriber status changed successfully." });
+      toast({ title: "Profil mis à jour", description: "Le statut d'abonné a été modifié." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+      toast({ variant: "destructive", title: "Échec de la mise à jour", description: error.message });
     }
   };
 
@@ -106,18 +106,18 @@ export default function AdminPage() {
     try {
       const newRole = currentRole === "admin" ? "user" : "admin";
       await updateProfile({ id, updates: { role: newRole as "user" | "admin" } });
-      toast({ title: "Role Updated", description: `User is now an ${newRole}.` });
+      toast({ title: "Rôle mis à jour", description: `L'utilisateur est maintenant ${newRole === 'admin' ? 'Administrateur' : 'Utilisateur'}.` });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+      toast({ variant: "destructive", title: "Échec de la mise à jour", description: error.message });
     }
   };
 
   const handleDeleteUser = async (id: string) => {
     try {
       await deleteProfile(id);
-      toast({ title: "User Deleted", description: "The user has been removed successfully." });
+      toast({ title: "Utilisateur supprimé", description: "L'utilisateur a été retiré avec succès." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Delete Failed", description: error.message });
+      toast({ variant: "destructive", title: "Échec de la suppression", description: error.message });
     }
   };
 
@@ -128,9 +128,9 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-display font-bold tracking-tight">Admin Portal</h1>
+        <h1 className="text-3xl font-display font-bold tracking-tight">Portail Administrateur</h1>
         <p className="text-muted-foreground text-lg">
-          Manage users and monitor system access.
+          Gérez les utilisateurs et surveillez les accès au système.
         </p>
       </div>
 
@@ -166,12 +166,12 @@ function AccessDenied({ setLocation }: { setLocation: any }) {
       <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center">
         <ShieldAlert className="w-8 h-8" />
       </div>
-      <h1 className="text-2xl font-bold">Access Denied</h1>
+      <h1 className="text-2xl font-bold">Accès Refusé</h1>
       <p className="text-muted-foreground max-w-md">
-        You do not have the required permissions to view this page. This area is restricted to administrators only.
+        Vous n'avez pas les permissions nécessaires pour voir cette page. Cette zone est réservée aux administrateurs.
       </p>
       <Button onClick={() => setLocation("/dashboard")}>
-        Return to Dashboard
+        Retour au Tableau de Bord
       </Button>
     </div>
   );
@@ -181,10 +181,10 @@ function AdminStats({ metrics, profiles }: any) {
   const adminsCount = profiles?.filter((p: any) => p.role === 'admin').length || 0;
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatCard title="New Today" value={metrics?.today} icon={<TrendingUp className="h-4 w-4 text-green-500" />} description="Users registered today" />
-      <StatCard title="This Week" value={metrics?.week} icon={<Users className="h-4 w-4 text-primary" />} description="Users this week" />
-      <StatCard title="This Month" value={metrics?.month} icon={<Users className="h-4 w-4 text-muted-foreground" />} description="Users this month" />
-      <StatCard title="Admins" value={adminsCount} icon={<ShieldCheck className="h-4 w-4 text-primary" />} description="Total system admins" />
+      <StatCard title="Aujourd'hui" value={metrics?.today} icon={<TrendingUp className="h-4 w-4 text-green-500" />} description="Nouveaux inscrits" />
+      <StatCard title="Cette Semaine" value={metrics?.week} icon={<Users className="h-4 w-4 text-primary" />} description="Inscriptions 7j" />
+      <StatCard title="Ce Mois" value={metrics?.month} icon={<Users className="h-4 w-4 text-muted-foreground" />} description="Inscriptions 30j" />
+      <StatCard title="Admins" value={adminsCount} icon={<ShieldCheck className="h-4 w-4 text-primary" />} description="Administrateurs système" />
     </div>
   );
 }
@@ -209,8 +209,8 @@ function GrowthChart({ data }: any) {
     <Card className="border-border/60">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="space-y-1">
-          <CardTitle>Growth Overview</CardTitle>
-          <CardDescription>User registration growth over the last 30 days.</CardDescription>
+          <CardTitle>Aperçu de la Croissance</CardTitle>
+          <CardDescription>Évolution des inscriptions sur les 30 derniers jours.</CardDescription>
         </div>
         <BarChart3 className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
@@ -252,7 +252,7 @@ function GrowthChart({ data }: any) {
                 fillOpacity={1} 
                 fill="url(#colorCount)" 
                 strokeWidth={2}
-                name="New Users"
+                name="Nouveaux Utilisateurs"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -265,106 +265,108 @@ function GrowthChart({ data }: any) {
 function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter, profiles, onToggleRole, onToggleSubscriber, onDelete }: any) {
   return (
     <Card className="border-border/60">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>A list of all users registered in the system.</CardDescription>
+          <CardTitle>Gestion des Utilisateurs</CardTitle>
+          <CardDescription>Liste de tous les utilisateurs inscrits dans le système.</CardDescription>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative w-64">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search name or email..." 
+              placeholder="Rechercher nom ou email..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9"
             />
           </div>
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[130px] h-9">
+            <SelectTrigger className="w-full sm:w-[150px] h-9">
               <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="All Roles" />
+              <SelectValue placeholder="Tous les rôles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="user">Users</SelectItem>
-              <SelectItem value="admin">Admins</SelectItem>
+              <SelectItem value="all">Tous les rôles</SelectItem>
+              <SelectItem value="user">Utilisateurs</SelectItem>
+              <SelectItem value="admin">Administrateurs</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Active</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {profiles.length > 0 ? (
-              profiles.map((profile: Profile) => (
-                <TableRow key={profile.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium">{profile.full_name || "N/A"}</span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> {profile.email}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <button 
-                      onClick={() => onToggleRole(profile.id, profile.role)}
-                      className="transition-transform active:scale-95"
-                    >
-                      <Badge 
-                        variant={profile.role === 'admin' ? "default" : "secondary"}
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Utilisateur</TableHead>
+                <TableHead>Rôle</TableHead>
+                <TableHead>Abonné</TableHead>
+                <TableHead>Dernière activité</TableHead>
+                <TableHead>Inscription</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {profiles.length > 0 ? (
+                profiles.map((profile: Profile) => (
+                  <TableRow key={profile.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">{profile.full_name || "N/A"}</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" /> {profile.email}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <button 
+                        onClick={() => onToggleRole(profile.id, profile.role)}
+                        className="transition-transform active:scale-95"
                       >
-                        {profile.role}
-                      </Badge>
-                    </button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={profile.is_subscriber} 
-                        onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                      />
-                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
+                        <Badge 
+                          variant={profile.role === 'admin' ? "default" : "secondary"}
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                        >
+                          {profile.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
+                        </Badge>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={profile.is_subscriber} 
+                          onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                        />
+                        {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {profile.last_active_at ? format(new Date(profile.last_active_at), "d MMM, HH:mm") : "Jamais"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {profile.createdAt ? format(new Date(profile.createdAt), "d MMM yyyy") : "N/A"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    Aucun utilisateur trouvé.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No users found matching your search.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
@@ -380,18 +382,18 @@ function DeleteUserDialog({ profile, onDelete }: any) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the user profile for {profile.email}.
+            Cette action est irréversible. Cela supprimera définitivement le profil utilisateur de {profile.email}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            Delete
+            Supprimer
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

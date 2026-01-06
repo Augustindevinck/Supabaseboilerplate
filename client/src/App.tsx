@@ -79,6 +79,9 @@ function Router() {
       <Route path="/admin">
         <ProtectedRoute component={AdminPage} />
       </Route>
+      <Route path="/admin/users">
+        <ProtectedRoute component={AdminPage} />
+      </Route>
       
       {/* Fallback */}
       <Route component={NotFound} />
