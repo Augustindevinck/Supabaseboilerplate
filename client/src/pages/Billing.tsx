@@ -14,13 +14,14 @@ export default function Billing() {
       description: "Perfect for exploring the platform.",
       features: ["Up to 3 projects", "Basic analytics", "Community support"],
       current: !profile?.is_subscriber,
+      recommended: false,
     },
     {
       name: "Pro",
       price: "$29",
       description: "For serious builders and small teams.",
       features: ["Unlimited projects", "Advanced analytics", "Priority support", "Custom domains"],
-      current: profile?.is_subscriber,
+      current: !!profile?.is_subscriber,
       recommended: true,
     }
   ];

@@ -23,10 +23,10 @@ export default function Settings() {
     },
   });
 
-  const onSubmit = async (data: { full_name: string }) => {
+  const onSubmit = async (data: { full_name: string | null }) => {
     if (!user) return;
     try {
-      await updateProfile({ id: user.id, updates: data });
+      await updateProfile({ id: user.id, updates: { full_name: data.full_name || "" } });
       toast({ title: "Profile updated", description: "Your changes have been saved." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
