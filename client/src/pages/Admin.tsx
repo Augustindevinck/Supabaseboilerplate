@@ -134,6 +134,7 @@ export default function AdminPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Last Active</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -169,6 +170,12 @@ export default function AdminPage() {
                         onCheckedChange={() => handleToggleSubscriber(profile.id, !!profile.is_subscriber)}
                       />
                       {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">

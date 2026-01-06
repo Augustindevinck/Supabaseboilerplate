@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
     email TEXT,
     role TEXT DEFAULT 'user' NOT NULL,
+    is_subscriber BOOLEAN DEFAULT FALSE NOT NULL,
+    last_active_at TIMESTAMP WITH TIME ZONE,
     full_name TEXT,
     avatar_url TEXT,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,

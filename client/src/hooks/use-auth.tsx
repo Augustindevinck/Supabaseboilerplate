@@ -40,6 +40,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoadingSession(false);
+
+      if (session?.user) {
+        // Update last active timestamp
+        supabase
+          .from("profiles")
+          .update({ last_active_at: new Date().toISOString() })
+          .eq("id", session.user.id)
+          .then(({ error }) => {
+            if (error) console.error("Error updating last active:", error);
+          });
+      }
     });
 
     return () => subscription.unsubscribe();
