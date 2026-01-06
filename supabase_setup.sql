@@ -62,24 +62,49 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 CREATE POLICY "Admins can perform all actions" ON public.profiles FOR ALL USING (public.is_admin());
 
 -- 7. AUTOMATION: HANDLER FOR NEW USERS
+-- Extracts name from various OAuth providers (Google, GitHub, etc.)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+    extracted_name TEXT;
+    extracted_avatar TEXT;
 BEGIN
+    -- Try to extract full name from various OAuth provider formats
+    extracted_name := COALESCE(
+        -- Standard full_name field
+        NEW.raw_user_meta_data->>'full_name',
+        -- Google/GitHub "name" field
+        NEW.raw_user_meta_data->>'name',
+        -- Combine Google's given_name + family_name
+        NULLIF(TRIM(
+            COALESCE(NEW.raw_user_meta_data->>'given_name', '') || ' ' || 
+            COALESCE(NEW.raw_user_meta_data->>'family_name', '')
+        ), ''),
+        -- GitHub username as fallback
+        NEW.raw_user_meta_data->>'user_name',
+        NEW.raw_user_meta_data->>'preferred_username',
+        -- Email prefix as last resort
+        split_part(NEW.email, '@', 1)
+    );
+
+    -- Try to extract avatar from various OAuth provider formats
+    extracted_avatar := COALESCE(
+        NEW.raw_user_meta_data->>'avatar_url',
+        NEW.raw_user_meta_data->>'picture',
+        NEW.raw_user_meta_data->>'photo_url'
+    );
+
     INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
     VALUES (
         NEW.id, 
         NEW.email, 
-        COALESCE(
-            NEW.raw_user_meta_data->>'full_name',
-            NEW.raw_user_meta_data->>'name',
-            split_part(NEW.email, '@', 1)
-        ), 
-        NEW.raw_user_meta_data->>'avatar_url',
+        extracted_name,
+        extracted_avatar,
         'user'
     )
     ON CONFLICT (id) DO UPDATE SET
         email = EXCLUDED.email,
-        full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+        full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), profiles.full_name),
         avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url);
     RETURN NEW;
 END;
@@ -104,3 +129,6 @@ CREATE TRIGGER on_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
+
+-- NOTE: To make yourself an admin, run:
+-- UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com';
