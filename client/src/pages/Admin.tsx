@@ -112,7 +112,7 @@ export default function AdminPage() {
                   <TableCell className="text-muted-foreground text-sm">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {profile.created_at ? format(new Date(profile.created_at), "MMM d, yyyy") : "N/A"}
+                      {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
                     </div>
                   </TableCell>
                 </TableRow>
