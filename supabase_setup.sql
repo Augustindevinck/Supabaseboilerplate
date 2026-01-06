@@ -35,7 +35,20 @@ CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles(email);
 -- 4. ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 5. POLICIES (Idempotent cleanup & recreation)
+-- 5. HELPER FUNCTION TO CHECK ADMIN ROLE (Prevents recursion)
+-- This function uses "SECURITY DEFINER" to bypass RLS and check the role directly.
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (
+    SELECT role = 'admin'
+    FROM public.profiles
+    WHERE id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 6. POLICIES (Idempotent cleanup & recreation)
 DO $$ 
 BEGIN
     DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
@@ -61,14 +74,12 @@ CREATE POLICY "Users can update own profile"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
--- Policies for Admins (Security Definer logic to avoid infinite recursion)
+-- Policies for Admins (Using the helper function to avoid infinite recursion)
 CREATE POLICY "Admins can perform all actions" 
 ON public.profiles FOR ALL 
-USING (
-    (SELECT role = 'admin' FROM public.profiles WHERE id = auth.uid())
-);
+USING (public.is_admin());
 
--- 6. AUTOMATION: HANDLER FOR NEW USERS
+-- 7. AUTOMATION: HANDLER FOR NEW USERS
 -- Use security definer to bypass RLS during trigger execution
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -93,13 +104,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- 7. TRIGGER REGISTRATION
+-- 8. TRIGGER REGISTRATION
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 8. AUTOMATION: UPDATED_AT TIMESTAMP
+-- 9. AUTOMATION: UPDATED_AT TIMESTAMP
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -113,7 +124,7 @@ CREATE TRIGGER on_profiles_updated
     BEFORE UPDATE ON public.profiles
     FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
--- 9. PERMISSIONS
+-- 10. PERMISSIONS
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
