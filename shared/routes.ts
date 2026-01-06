@@ -18,12 +18,29 @@ export const errorSchemas = {
 };
 
 export const api = {
-  // We can keep a health check or specific admin ops here if needed
   health: {
     method: 'GET' as const,
     path: '/api/health',
     responses: {
       200: z.object({ status: z.string() }),
+    },
+  },
+  profiles: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/profiles/:id',
+      responses: {
+        200: insertProfileSchema,
+        404: errorSchemas.notFound,
+      },
+    },
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/profiles/:id',
+      responses: {
+        200: insertProfileSchema,
+        400: errorSchemas.validation,
+      },
     },
   },
 };
