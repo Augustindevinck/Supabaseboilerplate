@@ -40,15 +40,17 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public Routes */}
-      <Route path="/">
-        {user ? <Redirect to="/dashboard" /> : <Landing />}
+import { AUTH_CONFIG } from "@/config/auth";
+
+// ... inside Router component ...
+      <Route path={AUTH_CONFIG.LANDING_PATH}>
+        {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <Landing />}
       </Route>
-      <Route path="/login">
-        {user ? <Redirect to="/dashboard" /> : <AuthPage />}
+      <Route path={AUTH_CONFIG.LOGIN_PATH}>
+        {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <AuthPage />}
       </Route>
-      <Route path="/register">
-        {user ? <Redirect to="/dashboard" /> : <AuthPage />}
+      <Route path={AUTH_CONFIG.REGISTER_PATH}>
+        {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <AuthPage />}
       </Route>
 
       {/* Protected Routes */}

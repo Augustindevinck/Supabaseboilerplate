@@ -34,22 +34,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoadingSession(false);
     });
 
+import { AUTH_CONFIG } from "@/config/auth";
+
+// ... existing code ...
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoadingSession(false);
 
+      if (event === "SIGNED_OUT") {
+        queryClient.clear();
+        window.location.href = AUTH_CONFIG.LOGIN_PATH;
+      }
+
       if (session?.user) {
-        // Update last active timestamp
-        supabase
-          .from("profiles")
-          .update({ last_active_at: new Date().toISOString() })
-          .eq("id", session.user.id)
-          .then(({ error }) => {
-            if (error) console.error("Error updating last active:", error);
-          });
+        // ... update profile logic ...
       }
     });
 
