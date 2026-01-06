@@ -518,7 +518,11 @@ function SidebarMenuButton({
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
-      className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+      className={cn(
+        "group-data-[collapsible=icon]:w-8! group-data-[collapsible=icon]:h-8! group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+        sidebarMenuButtonVariants({ variant, size }),
+        className
+      )}
       {...props}
     />
   )

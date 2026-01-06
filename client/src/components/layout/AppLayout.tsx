@@ -44,7 +44,7 @@ function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/20 overflow-hidden">
-        <div className="flex items-center gap-2 px-2 w-full">
+        <div className="flex items-center justify-center gap-2 px-2 w-full">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             S
           </div>
@@ -118,7 +118,7 @@ function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-center"
             >
               <Avatar className="h-8 w-8 rounded-lg shrink-0">
                 <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
