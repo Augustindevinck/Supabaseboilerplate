@@ -9,7 +9,9 @@ import { AUTH_CONFIG } from "@/config/auth";
 type Profile = {
   id: string;
   email: string | null;
+  full_name: string | null;
   role: "user" | "admin";
+  is_subscriber: boolean;
 };
 
 type AuthContextType = {
