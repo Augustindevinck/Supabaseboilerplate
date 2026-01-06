@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     avatar_url TEXT,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    
+
     CONSTRAINT profiles_role_check CHECK (role IN ('user', 'admin'))
 );
 
@@ -64,7 +64,7 @@ USING (auth.uid() = id);
 CREATE POLICY "Admins can perform all actions" 
 ON public.profiles FOR ALL 
 USING (
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+    (SELECT role = 'admin' FROM public.profiles WHERE id = auth.uid())
 );
 
 -- 6. AUTOMATION: HANDLER FOR NEW USERS
@@ -76,7 +76,11 @@ BEGIN
     VALUES (
         NEW.id, 
         NEW.email, 
-        NEW.raw_user_meta_data->>'full_name', 
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            split_part(NEW.email, '@', 1)
+        ), 
         NEW.raw_user_meta_data->>'avatar_url',
         'user'
     )
