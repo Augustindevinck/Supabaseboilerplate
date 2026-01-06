@@ -118,7 +118,7 @@ function AppSidebar() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-center"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-center cursor-pointer"
             >
               <Avatar className="h-8 w-8 rounded-lg shrink-0">
                 <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
