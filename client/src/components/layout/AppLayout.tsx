@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
-  Settings, 
-  FolderKanban, 
   ShieldCheck, 
   Users, 
   LogOut,
@@ -68,30 +66,6 @@ function AppSidebar() {
                   <Link href="/dashboard">
                     <LayoutDashboard />
                     <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={isActive("/projects")}
-                  tooltip="Projects"
-                >
-                  <Link href="/projects">
-                    <FolderKanban />
-                    <span>Projects</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={isActive("/settings")}
-                  tooltip="Settings"
-                >
-                  <Link href="/settings">
-                    <Settings />
-                    <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

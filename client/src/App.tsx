@@ -10,8 +10,6 @@ import Landing from "@/pages/Landing";
 import AuthPage from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AdminPage from "@/pages/Admin";
-import Projects from "@/pages/Projects";
-import Settings from "@/pages/Settings";
 import { Loader2 } from "lucide-react";
 
 // Protected Route Wrapper
@@ -48,12 +46,6 @@ function Router() {
       {/* Protected Routes */}
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
-      </Route>
-      <Route path="/projects">
-        <ProtectedRoute component={Projects} />
-      </Route>
-      <Route path="/settings">
-        <ProtectedRoute component={Settings} />
       </Route>
 
       {/* Admin Route */}
