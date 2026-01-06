@@ -1,50 +1,112 @@
--- Run this in your Supabase SQL Editor to set up the required tables
--- This script is idempotent and safe to run multiple times
+-- =========================================================================================
+-- SUPABASE SENIOR BOILERPLATE SETUP
+-- This script sets up a secure, robust profile system for a SaaS application.
+-- Features: Idempotency, Row Level Security (RLS), Automatic Profile Creation, 
+--           Admin Role Management, and Performance Indexes.
+-- =========================================================================================
 
--- Create a table for public profiles (if it doesn't exist)
-create table if not exists profiles (
-  id uuid references auth.users not null primary key,
-  email text,
-  role text default 'user' check (role in ('user', 'admin')),
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+-- 1. CLEANUP (Optional - only if you want a fresh start, commented for safety)
+-- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+-- DROP FUNCTION IF EXISTS public.handle_new_user();
+-- DROP TABLE IF EXISTS public.profiles;
+
+-- 2. SCHEMA DEFINITION
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
+    email TEXT,
+    role TEXT DEFAULT 'user' NOT NULL,
+    full_name TEXT,
+    avatar_url TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    
+    CONSTRAINT profiles_role_check CHECK (role IN ('user', 'admin'))
 );
 
--- Set up Row Level Security (RLS) - enable if not already enabled
-alter table profiles enable row level security;
+-- 3. PERFORMANCE INDEXES
+CREATE INDEX IF NOT EXISTS profiles_role_idx ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles(email);
 
--- Drop existing policies if they exist (to avoid conflicts)
-drop policy if exists "Public profiles are viewable by everyone." on profiles;
-drop policy if exists "Users can insert their own profile." on profiles;
-drop policy if exists "Users can update own profile." on profiles;
+-- 4. ROW LEVEL SECURITY (RLS)
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Recreate policies
-create policy "Public profiles are viewable by everyone." on profiles
-  for select using (true);
+-- 5. POLICIES (Idempotent cleanup & recreation)
+DO $$ 
+BEGIN
+    DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
+    DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+    DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+    DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+    DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+EXCEPTION
+    WHEN undefined_object THEN NULL;
+END $$;
 
-create policy "Users can insert their own profile." on profiles
-  for insert with check (auth.uid() = id);
+-- Policies for Users
+CREATE POLICY "Public profiles are viewable by everyone" 
+ON public.profiles FOR SELECT 
+USING (true);
 
-create policy "Users can update own profile." on profiles
-  for update using (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile" 
+ON public.profiles FOR INSERT 
+WITH CHECK (auth.uid() = id);
 
--- Drop existing trigger and function if they exist (to avoid conflicts)
-drop trigger if exists on_auth_user_created on auth.users;
-drop function if exists public.handle_new_user();
+CREATE POLICY "Users can update own profile" 
+ON public.profiles FOR UPDATE 
+USING (auth.uid() = id);
 
--- Recreate function and trigger
-create or replace function public.handle_new_user()
-returns trigger as $$
-begin
-  insert into public.profiles (id, email, role)
-  values (new.id, new.email, 'user');
-  return new;
-end;
-$$ language plpgsql security definer;
+-- Policies for Admins (Security Definer logic to avoid infinite recursion)
+CREATE POLICY "Admins can perform all actions" 
+ON public.profiles FOR ALL 
+USING (
+    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+);
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+-- 6. AUTOMATION: HANDLER FOR NEW USERS
+-- Use security definer to bypass RLS during trigger execution
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
+    VALUES (
+        NEW.id, 
+        NEW.email, 
+        NEW.raw_user_meta_data->>'full_name', 
+        NEW.raw_user_meta_data->>'avatar_url',
+        'user'
+    )
+    ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- Grant permissions (optional but recommended)
-grant usage on schema public to anon, authenticated;
-grant all on public.profiles to anon, authenticated;
+-- 7. TRIGGER REGISTRATION
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- 8. AUTOMATION: UPDATED_AT TIMESTAMP
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_profiles_updated ON public.profiles;
+CREATE TRIGGER on_profiles_updated
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+-- 9. PERMISSIONS
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON public.profiles TO authenticated;
+GRANT SELECT ON public.profiles TO anon;
+
+-- NOTE: To make yourself an admin, run:
+-- UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com';

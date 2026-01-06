@@ -47,25 +47,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        // If profile doesn't exist yet, we might want to create one or return a default
-        // For this boilerplate, we'll return a basic user profile if fetch fails 
-        // (handling the case where trigger hasn't run yet)
-        console.warn("Error fetching profile or profile missing:", error);
-        return { id: user.id, email: user.email, role: "user" } as Profile;
-      }
-      
-      return data as Profile;
-    },
     enabled: !!user,
   });
 
