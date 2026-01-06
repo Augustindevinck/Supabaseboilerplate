@@ -28,20 +28,34 @@ export function useProfile() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updates: UpdateProfileRequest) => {
-      if (!user) throw new Error("Not authenticated");
+    mutationFn: async ({ id, updates }: { id: string; updates: UpdateProfileRequest }) => {
       const { data, error } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", user.id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
       return data;
     },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["profile", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
     },
   });
 
@@ -49,6 +63,8 @@ export function useProfile() {
     ...query,
     updateProfile: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
+    deleteProfile: deleteMutation.mutateAsync,
+    isDeleting: deleteMutation.isPending,
   };
 }
 

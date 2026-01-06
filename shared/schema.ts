@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,6 +8,7 @@ export const profiles = pgTable("profiles", {
   full_name: text("full_name"),
   avatar_url: text("avatar_url"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  is_subscriber: boolean("is_subscriber").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

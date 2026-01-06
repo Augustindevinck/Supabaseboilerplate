@@ -1,18 +1,51 @@
-import { useProfiles } from "@/hooks/use-supabase";
+import { useProfiles, useProfile } from "@/hooks/use-supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminPage() {
   const { isAdmin } = useAuth();
   const [, setLocation] = useLocation();
   const { data: profiles, isLoading } = useProfiles();
+  const { updateProfile, deleteProfile } = useProfile();
+  const { toast } = useToast();
+
+  const handleToggleSubscriber = async (id: string, current: boolean) => {
+    try {
+      await updateProfile({ id, updates: { is_subscriber: !current } });
+      toast({ title: "Profile Updated", description: "Subscriber status changed successfully." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await deleteProfile(id);
+      toast({ title: "User Deleted", description: "The user has been removed successfully." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Delete Failed", description: error.message });
+    }
+  };
 
   if (!isAdmin && !isLoading) {
     return (
@@ -90,7 +123,9 @@ export default function AdminPage() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,11 +144,46 @@ export default function AdminPage() {
                       {profile.role}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={profile.is_subscriber} 
+                        onCheckedChange={() => handleToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                      />
+                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the user profile for {profile.email}.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteUser(profile.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}
