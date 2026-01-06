@@ -14,6 +14,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(
   pinoHttp({
     logger,
+    // Filter out asset requests from logs to keep them clean
+    autoLogging: {
+      ignore: (req) => {
+        const url = req.url || "";
+        return (
+          url.startsWith("/@") || 
+          url.includes(".") || 
+          url.startsWith("/src/") ||
+          url.startsWith("/node_modules/")
+        );
+      },
+    },
     customLogLevel: (req, res, err) => {
       if (res.statusCode >= 500 || err) return "error";
       if (res.statusCode >= 400) return "warn";
