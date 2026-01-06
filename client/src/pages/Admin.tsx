@@ -21,8 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@shared/schema";
 import { useState, useMemo } from "react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -42,11 +40,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-// Helper hook for fetching all profiles (Admin only)
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
+/**
+ * Hook for fetching all profiles (Admin only)
+ */
 export function useAllProfiles() {
   const { isAdmin } = useAuth();
 
@@ -65,6 +64,9 @@ export function useAllProfiles() {
   });
 }
 
+/**
+ * Admin Portal Main Page
+ */
 export default function AdminPage() {
   const { isAdmin } = useAuth();
   const [, setLocation] = useLocation();
@@ -73,6 +75,7 @@ export default function AdminPage() {
   const { data: growthData, isLoading: isLoadingGrowth } = useUserGrowth();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
@@ -80,9 +83,7 @@ export default function AdminPage() {
 
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
-    
     const query = searchQuery.toLowerCase().trim();
-    
     return profiles.filter((p: Profile) => {
       const matchesRole = roleFilter === "all" || p.role === roleFilter;
       const matchesSearch = !query || 
@@ -121,20 +122,7 @@ export default function AdminPage() {
   };
 
   if (!isAdmin && !isLoading) {
-    return (
-      <div className="h-[80vh] flex flex-col items-center justify-center text-center space-y-4">
-        <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center">
-          <ShieldAlert className="w-8 h-8" />
-        </div>
-        <h1 className="text-2xl font-bold">Access Denied</h1>
-        <p className="text-muted-foreground max-w-md">
-          You do not have the required permissions to view this page. This area is restricted to administrators only.
-        </p>
-        <Button onClick={() => setLocation("/dashboard")}>
-          Return to Dashboard
-        </Button>
-      </div>
-    );
+    return <AccessDenied setLocation={setLocation} />;
   }
 
   return (
@@ -150,55 +138,47 @@ export default function AdminPage() {
         <AdminSkeleton />
       ) : (
         <>
-          <AdminStats metrics={metrics} profilesCount={profiles?.length} adminsCount={profiles?.filter(p => p.role === 'admin').length} />
-          
+          <AdminStats metrics={metrics} profiles={profiles} />
           <GrowthChart data={growthData} />
-
-          <Card className="border-border/60">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div className="space-y-1">
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>A list of all users registered in the system.</CardDescription>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search name or email..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9"
-                  />
-                </div>
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-[130px] h-9">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="All Roles" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="user">Users</SelectItem>
-                    <SelectItem value="admin">Admins</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <UserTable 
-                profiles={filteredProfiles} 
-                onToggleRole={handleToggleRole} 
-                onToggleSubscriber={handleToggleSubscriber} 
-                onDelete={handleDeleteUser} 
-              />
-            </CardContent>
-          </Card>
+          <UserManagement 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            roleFilter={roleFilter}
+            setRoleFilter={setRoleFilter}
+            profiles={filteredProfiles}
+            onToggleRole={handleToggleRole}
+            onToggleSubscriber={handleToggleSubscriber}
+            onDelete={handleDeleteUser}
+          />
         </>
       )}
     </div>
   );
 }
 
-function AdminStats({ metrics, profilesCount, adminsCount }: any) {
+/**
+ * Sub-components
+ */
+
+function AccessDenied({ setLocation }: { setLocation: any }) {
+  return (
+    <div className="h-[80vh] flex flex-col items-center justify-center text-center space-y-4">
+      <div className="w-16 h-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center">
+        <ShieldAlert className="w-8 h-8" />
+      </div>
+      <h1 className="text-2xl font-bold">Access Denied</h1>
+      <p className="text-muted-foreground max-w-md">
+        You do not have the required permissions to view this page. This area is restricted to administrators only.
+      </p>
+      <Button onClick={() => setLocation("/dashboard")}>
+        Return to Dashboard
+      </Button>
+    </div>
+  );
+}
+
+function AdminStats({ metrics, profiles }: any) {
+  const adminsCount = profiles?.filter((p: any) => p.role === 'admin').length || 0;
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard title="New Today" value={metrics?.today} icon={<TrendingUp className="h-4 w-4 text-green-500" />} description="Users registered today" />
@@ -282,79 +262,111 @@ function GrowthChart({ data }: any) {
   );
 }
 
-function UserTable({ profiles, onToggleRole, onToggleSubscriber, onDelete }: any) {
+function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter, profiles, onToggleRole, onToggleSubscriber, onDelete }: any) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>User</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Last Active</TableHead>
-          <TableHead>Joined</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {profiles.length > 0 ? (
-          profiles.map((profile: Profile) => (
-            <TableRow key={profile.id}>
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  <span className="font-medium">{profile.full_name || "N/A"}</span>
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Mail className="h-3 w-3" /> {profile.email}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <button 
-                  onClick={() => onToggleRole(profile.id, profile.role)}
-                  className="transition-transform active:scale-95"
-                >
-                  <Badge 
-                    variant={profile.role === 'admin' ? "default" : "secondary"}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                  >
-                    {profile.role}
-                  </Badge>
-                </button>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Switch 
-                    checked={profile.is_subscriber} 
-                    onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                  />
-                  {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                </div>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
-                </div>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
-              </TableCell>
+    <Card className="border-border/60">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="space-y-1">
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>A list of all users registered in the system.</CardDescription>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search name or email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[130px] h-9">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="user">Users</SelectItem>
+              <SelectItem value="admin">Admins</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last Active</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-              No users found matching your search.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          </TableHeader>
+          <TableBody>
+            {profiles.length > 0 ? (
+              profiles.map((profile: Profile) => (
+                <TableRow key={profile.id}>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{profile.full_name || "N/A"}</span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> {profile.email}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <button 
+                      onClick={() => onToggleRole(profile.id, profile.role)}
+                      className="transition-transform active:scale-95"
+                    >
+                      <Badge 
+                        variant={profile.role === 'admin' ? "default" : "secondary"}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        {profile.role}
+                      </Badge>
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={profile.is_subscriber} 
+                        onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                      />
+                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  No users found matching your search.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -397,9 +409,6 @@ function AdminSkeleton() {
       </div>
       <Skeleton className="h-[300px] w-full" />
       <Skeleton className="h-[400px] w-full" />
-    </div>
-  );
-}
     </div>
   );
 }
