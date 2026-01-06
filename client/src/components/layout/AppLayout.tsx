@@ -35,28 +35,30 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 function AppSidebar() {
   const [location] = useLocation();
   const { profile, isAdmin, signOut } = useAuth();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
 
-  const isCollapsed = state === "collapsed";
+  const isCollapsed = state === "collapsed" && !isMobile;
 
   const isActive = (path: string) => location === path;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
-      <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/20">
+      <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/20 overflow-hidden">
         <div className="flex items-center gap-2 px-2 w-full">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             S
           </div>
-          <span className="font-display font-bold text-lg truncate group-data-[collapsible=icon]:hidden">
-            SaaS Boilerplate
-          </span>
+          {!isCollapsed && (
+            <span className="font-display font-bold text-lg truncate animate-in fade-in duration-300">
+              SaaS Boilerplate
+            </span>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -67,7 +69,7 @@ function AppSidebar() {
                 >
                   <Link href="/dashboard" className="flex items-center gap-2 w-full">
                     <LayoutDashboard className="shrink-0" />
-                    <span className="truncate">Dashboard</span>
+                    {!isCollapsed && <span className="truncate">Dashboard</span>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -77,7 +79,7 @@ function AppSidebar() {
 
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Administration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -87,9 +89,9 @@ function AppSidebar() {
                     className="text-primary hover:text-primary"
                     tooltip="Admin Overview"
                   >
-                    <Link href="/admin">
-                      <ShieldCheck />
-                      <span>Admin Overview</span>
+                    <Link href="/admin" className="flex items-center gap-2 w-full">
+                      <ShieldCheck className="shrink-0" />
+                      {!isCollapsed && <span className="truncate">Admin Overview</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -99,9 +101,9 @@ function AppSidebar() {
                     isActive={isActive("/admin/users")}
                     tooltip="User Management"
                   >
-                    <Link href="/admin/users">
-                      <Users />
-                      <span>Users</span>
+                    <Link href="/admin/users" className="flex items-center gap-2 w-full">
+                      <Users className="shrink-0" />
+                      {!isCollapsed && <span className="truncate">Users</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -111,23 +113,27 @@ function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/20 p-2">
+      <SidebarFooter className="border-t border-border/20 p-2 overflow-hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="h-8 w-8 rounded-lg shrink-0">
                 <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
                   {profile?.email?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{profile?.role === 'admin' ? 'Administrator' : 'User'}</span>
-                <span className="truncate text-xs">{profile?.email}</span>
-              </div>
-              <ChevronRight className="ml-auto size-4" />
+              {!isCollapsed && (
+                <>
+                  <div className="grid flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
+                    <span className="truncate font-semibold">{profile?.role === 'admin' ? 'Administrator' : 'User'}</span>
+                    <span className="truncate text-xs">{profile?.email}</span>
+                  </div>
+                  <ChevronRight className="ml-auto size-4 shrink-0" />
+                </>
+              )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
