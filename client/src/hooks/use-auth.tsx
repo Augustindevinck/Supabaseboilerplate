@@ -74,15 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .maybeSingle();
+        .single();
 
       if (error) {
-        console.warn("Error fetching profile:", error);
-        return { id: user.id, email: user.email ?? null, role: "user" } as Profile;
-      }
-      
-      if (!data) {
-        return { id: user.id, email: user.email ?? null, role: "user" } as Profile;
+        console.error("Error fetching profile:", error);
+        return { id: user.id, email: user.email ?? null, role: "user", is_subscriber: false } as Profile;
       }
       
       return data as Profile;

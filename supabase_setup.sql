@@ -130,4 +130,4 @@ GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
 
 -- NOTE: To make yourself an admin, run:
--- UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com';
+-- UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com'x²;
