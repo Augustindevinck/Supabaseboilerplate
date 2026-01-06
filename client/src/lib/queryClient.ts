@@ -3,8 +3,10 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (res.status === 401 || res.status === 403) {
     // Session expired or unauthorized - clear cache and redirect
-    queryClient.clear();
-    window.location.href = "/auth";
+    if (typeof window !== "undefined") {
+      queryClient.clear();
+      window.location.href = "/auth";
+    }
     return;
   }
 
