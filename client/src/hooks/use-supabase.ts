@@ -69,22 +69,36 @@ export function useProfile() {
 }
 
 /**
- * Hook for fetching all profiles (Admin only)
+ * Hook for fetching admin metrics (Admin only)
  */
-export function useProfiles() {
+export function useAdminMetrics() {
   const { isAdmin } = useAuth();
 
-  return useQuery<Profile[]>({
-    queryKey: ["profiles"],
+  return useQuery({
+    queryKey: ["admin-metrics"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const thisWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      if (error) throw error;
-      return data || [];
+      const [
+        { count: todayCount },
+        { count: weekCount },
+        { count: monthCount }
+      ] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", today),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thisWeek),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thisMonth),
+      ]);
+
+      return {
+        today: todayCount || 0,
+        week: weekCount || 0,
+        month: monthCount || 0,
+      };
     },
     enabled: isAdmin,
+    refetchInterval: 1000 * 60, // Refresh every minute
   });
 }

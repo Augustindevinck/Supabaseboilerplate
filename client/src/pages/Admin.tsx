@@ -1,15 +1,16 @@
-import { useProfiles, useProfile } from "@/hooks/use-supabase";
+import { useProfile, useAdminMetrics } from "@/hooks/use-supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { Profile } from "@shared/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +23,37 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+// Helper hook for fetching all profiles (Admin only)
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+
+export function useAllProfiles() {
+  const { isAdmin } = useAuth();
+
+  return useQuery<Profile[]>({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: isAdmin,
+  });
+}
+
 export default function AdminPage() {
   const { isAdmin } = useAuth();
   const [, setLocation] = useLocation();
-  const { data: profiles, isLoading } = useProfiles();
+  const { data: profiles, isLoading: isLoadingProfiles } = useAllProfiles();
+  const { data: metrics, isLoading: isLoadingMetrics } = useAdminMetrics();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
+
+  const isLoading = isLoadingProfiles || isLoadingMetrics;
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
@@ -38,10 +64,10 @@ export default function AdminPage() {
     }
   };
 
-  const handleToggleRole = async (id: string, currentRole: "user" | "admin") => {
+  const handleToggleRole = async (id: string, currentRole: string) => {
     try {
       const newRole = currentRole === "admin" ? "user" : "admin";
-      await updateProfile({ id, updates: { role: newRole } });
+      await updateProfile({ id, updates: { role: newRole as "user" | "admin" } });
       toast({ title: "Role Updated", description: `User is now an ${newRole}.` });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Update Failed", description: error.message });
@@ -81,9 +107,10 @@ export default function AdminPage() {
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
         </div>
         <Skeleton className="h-[400px] w-full" />
       </div>
@@ -99,14 +126,35 @@ export default function AdminPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-border/60">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">New Today</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics?.today || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Users registered today</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Week</CardTitle>
+            <Users className="h-4 w-4 text-primary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics?.week || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Users this week</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">This Month</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profiles?.length || 0}</div>
+            <div className="text-2xl font-bold">{metrics?.month || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Users this month</p>
           </CardContent>
         </Card>
         <Card className="border-border/60">
@@ -116,8 +164,9 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {profiles?.filter(p => p.role === 'admin').length || 0}
+              {profiles?.filter((p: Profile) => p.role === 'admin').length || 0}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Total system admins</p>
           </CardContent>
         </Card>
       </div>
@@ -140,7 +189,7 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {profiles?.map((profile) => (
+              {profiles?.map((profile: Profile) => (
                 <TableRow key={profile.id}>
                   <TableCell>
                     <div className="flex flex-col gap-1">
