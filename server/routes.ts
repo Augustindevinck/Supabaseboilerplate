@@ -67,5 +67,39 @@ export async function registerRoutes(
     }
   });
 
+  // Debug endpoint to check auth.users vs profiles
+  app.get("/api/debug/auth-users", async (req, res) => {
+    try {
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      
+      if (!supabaseUrl || !serviceRoleKey) {
+        return res.status(500).json({ message: "Supabase credentials not configured" });
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+      
+      if (error) {
+        logger.error({ err: error }, "Error fetching auth users");
+        return res.status(500).json({ message: error.message });
+      }
+      
+      // Return simplified user info
+      const users = data.users.map(u => ({
+        id: u.id,
+        email: u.email,
+        provider: u.app_metadata?.provider,
+        created_at: u.created_at,
+        user_metadata: u.user_metadata
+      }));
+      
+      res.json(users);
+    } catch (error: any) {
+      logger.error({ err: error }, "Debug auth-users endpoint error");
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
