@@ -15,7 +15,4 @@ export const insertProfileSchema = createInsertSchema(profiles);
 
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
-
-// Request types (if we were to use an internal API, though we rely on Supabase client)
-export type CreateProfileRequest = InsertProfile;
-export type UpdateProfileRequest = Partial<InsertProfile>;
+export type UpdateProfileRequest = z.infer<typeof insertProfileSchema.partial()>;
