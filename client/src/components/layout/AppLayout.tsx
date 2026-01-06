@@ -65,9 +65,9 @@ function AppSidebar() {
                   isActive={isActive("/dashboard")}
                   tooltip="Dashboard"
                 >
-                  <Link href="/dashboard">
-                    <LayoutDashboard />
-                    <span>Dashboard</span>
+                  <Link href="/dashboard" className="flex items-center gap-2 w-full">
+                    <LayoutDashboard className="shrink-0" />
+                    <span className="truncate">Dashboard</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
