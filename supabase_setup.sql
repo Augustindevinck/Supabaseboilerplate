@@ -43,6 +43,7 @@ BEGIN
     DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
     DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
     DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+    DROP POLICY IF EXISTS "Admins can perform all actions" ON public.profiles;
 EXCEPTION
     WHEN undefined_object THEN NULL;
 END $$;
