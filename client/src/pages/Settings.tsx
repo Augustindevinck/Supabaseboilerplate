@@ -78,25 +78,25 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Status</CardTitle>
-            <CardDescription>Review your account permissions.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4 p-4 border rounded-lg">
-              <Shield className="h-8 w-8 text-primary" />
-              <div>
-                <p className="font-medium capitalize">Role: {profile?.role || "User"}</p>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.role === "admin" 
-                    ? "You have full administrative access to the platform." 
-                    : "You have standard user access to the platform."}
-                </p>
+        {profile?.role === "admin" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Status</CardTitle>
+              <CardDescription>Review your account permissions.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4 p-4 border rounded-lg">
+                <Shield className="h-8 w-8 text-primary" />
+                <div>
+                  <p className="font-medium capitalize">Role: {profile?.role || "User"}</p>
+                  <p className="text-sm text-muted-foreground">
+                    You have full administrative access to the platform.
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
