@@ -51,100 +51,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <motion.div 
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-      >
-        <motion.div variants={item}>
-          <Card className="hover-elevate transition-all border-border/60 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                Account Status
-              </CardTitle>
-              <UserIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{profile?.role === 'admin' ? 'Administrator' : 'Standard User'}</div>
-              <p className="text-xs text-muted-foreground mt-1">Role-based access is active</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={item}>
-          <Card className="hover-elevate transition-all border-border/60 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                Security
-              </CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Verified</div>
-              <p className="text-xs text-muted-foreground mt-1">Supabase Auth protection</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={item}>
-          <Card className="hover-elevate transition-all border-border/60 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                System
-              </CardTitle>
-              <LayoutDashboard className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Live</div>
-              <p className="text-xs text-muted-foreground mt-1">Connected to Supabase DB</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </motion.div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 border-border/60">
-          <CardHeader>
-            <CardTitle>Platform Overview</CardTitle>
-            <CardDescription>System activity and performance metrics.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center bg-secondary/10 rounded-lg m-4 border border-dashed border-border/50">
-             <div className="text-center text-muted-foreground">
-               <Activity className="mx-auto h-12 w-12 opacity-20 mb-2" />
-               <p className="font-medium">Boilerplate Ready</p>
-               <p className="text-xs">Start building your features here</p>
-             </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-3 border-border/60">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Latest events from the platform.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {[
-                { name: "System Update", desc: "Supabase connection verified", time: "Just now" },
-                { name: "Auth Event", desc: "Session refreshed successfully", time: "2m ago" },
-                { name: "Profile Sync", desc: "Trigger executed correctly", time: "10m ago" },
-              ].map((activity, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                    {activity.name.substring(0, 2)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium leading-none truncate">{activity.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1 truncate">{activity.desc}</p>
-                  </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="rounded-lg border border-dashed border-border/50 bg-secondary/5 p-8 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
+          <Activity className="h-6 w-6 text-primary" />
+        </div>
+        <h2 className="text-xl font-semibold mb-2">Ready to Build</h2>
+        <p className="text-muted-foreground max-w-sm mx-auto">
+          Your boilerplate is set up and connected to Supabase. Start adding your custom features and components here.
+        </p>
       </div>
     </div>
   );
