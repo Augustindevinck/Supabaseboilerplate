@@ -17,8 +17,11 @@ export const profiles = pgTable("profiles", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-export const insertProfileSchema = createInsertSchema(profiles);
+export const insertProfileSchema = createInsertSchema(profiles, {
+  email: z.string().email(),
+  full_name: z.string().min(2).max(100).optional(),
+});
 
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
-export type UpdateProfileRequest = Partial<InsertProfile>;
+export type UpdateProfileRequest = z.infer<typeof insertProfileSchema.partial()>;
