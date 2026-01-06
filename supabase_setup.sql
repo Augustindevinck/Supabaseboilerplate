@@ -1,11 +1,9 @@
 -- =========================================================================================
 -- SUPABASE SENIOR BOILERPLATE SETUP
 -- This script sets up a secure, robust profile system for a SaaS application.
--- Features: Idempotency, Row Level Security (RLS), Automatic Profile Creation, 
---           Admin Role Management, and Performance Indexes.
 -- =========================================================================================
 
--- 1. CLEANUP (Optional - only if you want a fresh start, commented for safety)
+-- 1. CLEANUP (Optional)
 -- DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 -- DROP FUNCTION IF EXISTS public.handle_new_user();
 -- DROP TABLE IF EXISTS public.profiles;
@@ -36,7 +34,6 @@ CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles(email);
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- 5. HELPER FUNCTION TO CHECK ADMIN ROLE (Prevents recursion)
--- This function uses "SECURITY DEFINER" to bypass RLS and check the role directly.
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -48,39 +45,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
--- 6. POLICIES (Idempotent cleanup & recreation)
+-- 6. POLICIES
 DO $$ 
 BEGIN
     DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
     DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
     DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-    DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
-    DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
     DROP POLICY IF EXISTS "Admins can perform all actions" ON public.profiles;
 EXCEPTION
     WHEN undefined_object THEN NULL;
 END $$;
 
--- Policies for Users
-CREATE POLICY "Public profiles are viewable by everyone" 
-ON public.profiles FOR SELECT 
-USING (true);
-
-CREATE POLICY "Users can insert their own profile" 
-ON public.profiles FOR INSERT 
-WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" 
-ON public.profiles FOR UPDATE 
-USING (auth.uid() = id);
-
--- Policies for Admins (Using the helper function to avoid infinite recursion)
-CREATE POLICY "Admins can perform all actions" 
-ON public.profiles FOR ALL 
-USING (public.is_admin());
+CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Admins can perform all actions" ON public.profiles FOR ALL USING (public.is_admin());
 
 -- 7. AUTOMATION: HANDLER FOR NEW USERS
--- Use security definer to bypass RLS during trigger execution
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -106,13 +87,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- 8. TRIGGER REGISTRATION
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 9. AUTOMATION: UPDATED_AT TIMESTAMP
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
+-- 9. UPDATED_AT TIMESTAMP
+CREATE OR REPLACE FUNCTION public.handle_updated_at() RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
@@ -120,14 +98,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS on_profiles_updated ON public.profiles;
-CREATE TRIGGER on_profiles_updated
-    BEFORE UPDATE ON public.profiles
-    FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+CREATE TRIGGER on_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
 
 -- 10. PERMISSIONS
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
-
--- NOTE: To make yourself an admin, run:
--- UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com'x²;

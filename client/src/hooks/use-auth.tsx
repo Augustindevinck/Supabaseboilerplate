@@ -81,9 +81,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { id: user.id, email: user.email ?? null, role: "user", is_subscriber: false } as Profile;
       }
       
+      console.log("Profile fetched:", data); // Debug log
       return data as Profile;
     },
     enabled: !!user,
+    staleTime: 0, // Ensure we get fresh data
   });
 
   const signOut = async () => {
