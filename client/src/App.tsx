@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import AuthPage from "@/pages/Auth";
@@ -19,7 +20,6 @@ import { AUTH_CONFIG } from "@/config/auth";
 // Protected Route Wrapper
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
-  const [, setLocation] = import.meta.env.DEV ? [null, (p: string) => window.location.href = p] : [null, (p: string) => window.location.href = p]; // Simplified for now
 
   React.useEffect(() => {
     if (!isLoading && !user) {
