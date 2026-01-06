@@ -3,11 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -67,19 +74,31 @@ export default function AdminPage() {
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   const isLoading = isLoadingProfiles || isLoadingMetrics || isLoadingGrowth;
 
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return profiles;
+    
+    let filtered = profiles;
 
-    return profiles.filter((profile: Profile) => 
-      profile.email?.toLowerCase().includes(query) || 
-      profile.full_name?.toLowerCase().includes(query)
-    );
-  }, [profiles, searchQuery]);
+    // Apply role filter
+    if (roleFilter !== "all") {
+      filtered = filtered.filter((p: Profile) => p.role === roleFilter);
+    }
+
+    // Apply search query
+    const query = searchQuery.toLowerCase().trim();
+    if (query) {
+      filtered = filtered.filter((profile: Profile) => 
+        profile.email?.toLowerCase().includes(query) || 
+        profile.full_name?.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [profiles, searchQuery, roleFilter]);
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
@@ -258,14 +277,27 @@ export default function AdminPage() {
             <CardTitle>User Management</CardTitle>
             <CardDescription>A list of all users registered in the system.</CardDescription>
           </div>
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name or email..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9"
-            />
+          <div className="flex items-center gap-3">
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search name or email..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[130px] h-9">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="All Roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="user">Users</SelectItem>
+                <SelectItem value="admin">Admins</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
