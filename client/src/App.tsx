@@ -11,6 +11,7 @@ import AuthPage from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AdminPage from "@/pages/Admin";
 import { Loader2 } from "lucide-react";
+import { AUTH_CONFIG } from "@/config/auth";
 
 // Protected Route Wrapper
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -25,7 +26,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to={AUTH_CONFIG.LOGIN_PATH} />;
   }
 
   return (
@@ -40,9 +41,7 @@ function Router() {
 
   return (
     <Switch>
-import { AUTH_CONFIG } from "@/config/auth";
-
-// ... inside Router component ...
+      {/* Public Routes */}
       <Route path={AUTH_CONFIG.LANDING_PATH}>
         {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <Landing />}
       </Route>

@@ -3,6 +3,8 @@ import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import { AUTH_CONFIG } from "@/config/auth";
 
 type Profile = {
   id: string;
@@ -34,10 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoadingSession(false);
     });
 
-import { AUTH_CONFIG } from "@/config/auth";
-
-// ... existing code ...
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
@@ -51,7 +49,14 @@ import { AUTH_CONFIG } from "@/config/auth";
       }
 
       if (session?.user) {
-        // ... update profile logic ...
+        // Update last active timestamp
+        supabase
+          .from("profiles")
+          .update({ last_active_at: new Date().toISOString() })
+          .eq("id", session.user.id)
+          .then(({ error }) => {
+            if (error) console.error("Error updating last active:", error);
+          });
       }
     });
 
