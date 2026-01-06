@@ -137,21 +137,21 @@ function AppSidebar() {
             sideOffset={4}
           >
             <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex w-full items-center">
+              <Link href="/settings" className="flex w-full items-center cursor-pointer">
                 <SettingsIcon className="mr-2 h-4 w-4" />
-                Settings
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/billing" className="flex w-full items-center">
+              <Link href="/billing" className="flex w-full items-center cursor-pointer">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Billing
+                <span>Billing</span>
               </Link>
             </DropdownMenuItem>
             <div className="my-1 h-px bg-muted" />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
               <LogOut className="mr-2 h-4 w-4" />
-              Log out
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

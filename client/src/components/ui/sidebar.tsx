@@ -513,7 +513,7 @@ function SidebarMenuButton({
   const { isMobile, state } = useSidebar()
 
   const button = (
-    <Comp
+    <button
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
