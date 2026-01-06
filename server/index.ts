@@ -8,6 +8,9 @@ import pinoHttp from "pino-http";
 const app = express();
 const httpServer = createServer(app);
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
 app.use(
   pinoHttp({
     logger,
@@ -58,7 +61,7 @@ app.use(
       reusePort: true,
     },
     () => {
-      log(`serving on port ${port}`);
+      logger.info(`serving on port ${port}`);
     },
   );
 })();
