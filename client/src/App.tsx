@@ -19,6 +19,13 @@ import { AUTH_CONFIG } from "@/config/auth";
 // Protected Route Wrapper
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = import.meta.env.DEV ? [null, (p: string) => window.location.href = p] : [null, (p: string) => window.location.href = p]; // Simplified for now
+
+  React.useEffect(() => {
+    if (!isLoading && !user) {
+      window.location.href = AUTH_CONFIG.LOGIN_PATH;
+    }
+  }, [user, isLoading]);
 
   if (isLoading) {
     return (
@@ -28,13 +35,13 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     );
   }
 
-  if (!user) {
-    return <Redirect to={AUTH_CONFIG.LOGIN_PATH} />;
-  }
+  if (!user) return null;
 
   return (
     <AppLayout>
-      <Component />
+      <ErrorBoundary>
+        <Component />
+      </ErrorBoundary>
     </AppLayout>
   );
 }
