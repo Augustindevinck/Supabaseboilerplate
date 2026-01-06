@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     last_active_at TIMESTAMP WITH TIME ZONE,
     full_name TEXT,
     avatar_url TEXT,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     
     CONSTRAINT profiles_role_check CHECK (role IN ('user', 'admin'))
 );

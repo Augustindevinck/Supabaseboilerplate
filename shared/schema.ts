@@ -9,8 +9,9 @@ export const profiles = pgTable("profiles", {
   avatar_url: text("avatar_url"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
   is_subscriber: boolean("is_subscriber").default(false).notNull(),
-  last_active_at: timestamp("last_active_at"),
-  createdAt: timestamp("created_at").defaultNow(),
+  last_active_at: timestamp("last_active_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const insertProfileSchema = createInsertSchema(profiles);
