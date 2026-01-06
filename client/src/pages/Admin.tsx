@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3 } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@shared/schema";
+import { useState, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -64,8 +66,20 @@ export default function AdminPage() {
   const { data: growthData, isLoading: isLoadingGrowth } = useUserGrowth();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isLoading = isLoadingProfiles || isLoadingMetrics || isLoadingGrowth;
+
+  const filteredProfiles = useMemo(() => {
+    if (!profiles) return [];
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return profiles;
+
+    return profiles.filter((profile: Profile) => 
+      profile.email?.toLowerCase().includes(query) || 
+      profile.full_name?.toLowerCase().includes(query)
+    );
+  }, [profiles, searchQuery]);
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
@@ -239,9 +253,20 @@ export default function AdminPage() {
       </Card>
 
       <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>A list of all users registered in the system.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>A list of all users registered in the system.</CardDescription>
+          </div>
+          <div className="relative w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by name or email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -256,78 +281,86 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {profiles?.map((profile: Profile) => (
-                <TableRow key={profile.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-medium">{profile.full_name || "N/A"}</span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> {profile.email}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <button 
-                      onClick={() => handleToggleRole(profile.id, profile.role)}
-                      className="transition-transform active:scale-95"
-                    >
-                      <Badge 
-                        variant={profile.role === 'admin' ? "default" : "secondary"}
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
+              {filteredProfiles.length > 0 ? (
+                filteredProfiles.map((profile: Profile) => (
+                  <TableRow key={profile.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">{profile.full_name || "N/A"}</span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" /> {profile.email}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <button 
+                        onClick={() => handleToggleRole(profile.id, profile.role)}
+                        className="transition-transform active:scale-95"
                       >
-                        {profile.role}
-                      </Badge>
-                    </button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={profile.is_subscriber} 
-                        onCheckedChange={() => handleToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                      />
-                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the user profile for {profile.email}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handleDeleteUser(profile.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                        <Badge 
+                          variant={profile.role === 'admin' ? "default" : "secondary"}
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                        >
+                          {profile.role}
+                        </Badge>
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={profile.is_subscriber} 
+                          onCheckedChange={() => handleToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                        />
+                        {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the user profile for {profile.email}.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteUser(profile.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    No users found matching your search.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
