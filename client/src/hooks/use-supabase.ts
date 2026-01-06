@@ -56,6 +56,8 @@ export function useProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["user-growth"] });
     },
   });
 

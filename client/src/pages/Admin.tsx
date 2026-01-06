@@ -81,23 +81,15 @@ export default function AdminPage() {
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
     
-    let filtered = profiles;
-
-    // Apply role filter
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((p: Profile) => p.role === roleFilter);
-    }
-
-    // Apply search query
     const query = searchQuery.toLowerCase().trim();
-    if (query) {
-      filtered = filtered.filter((profile: Profile) => 
-        profile.email?.toLowerCase().includes(query) || 
-        profile.full_name?.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered;
+    
+    return profiles.filter((p: Profile) => {
+      const matchesRole = roleFilter === "all" || p.role === roleFilter;
+      const matchesSearch = !query || 
+        p.email?.toLowerCase().includes(query) || 
+        p.full_name?.toLowerCase().includes(query);
+      return matchesRole && matchesSearch;
+    });
   }, [profiles, searchQuery, roleFilter]);
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
@@ -145,24 +137,6 @@ export default function AdminPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
-        </div>
-        <Skeleton className="h-[300px] w-full" />
-        <Skeleton className="h-[400px] w-full" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -172,231 +146,260 @@ export default function AdminPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/60">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Today</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.today || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Users registered today</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week</CardTitle>
-            <Users className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.week || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Users this week</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.month || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Users this month</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/60">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {profiles?.filter((p: Profile) => p.role === 'admin').length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Total system admins</p>
-          </CardContent>
-        </Card>
-      </div>
+      {isLoading ? (
+        <AdminSkeleton />
+      ) : (
+        <>
+          <AdminStats metrics={metrics} profilesCount={profiles?.length} adminsCount={profiles?.filter(p => p.role === 'admin').length} />
+          
+          <GrowthChart data={growthData} />
 
-      <Card className="border-border/60">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle>Growth Overview</CardTitle>
-            <CardDescription>User registration growth over the last 30 days.</CardDescription>
-          </div>
-          <BarChart3 className="h-5 w-5 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growthData}>
-                <defs>
-                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.1)" />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  minTickGap={30}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="hsl(var(--primary))" 
-                  fillOpacity={1} 
-                  fill="url(#colorCount)" 
-                  strokeWidth={2}
-                  name="New Users"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/60">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>A list of all users registered in the system.</CardDescription>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search name or email..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9"
+          <Card className="border-border/60">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>A list of all users registered in the system.</CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search name or email..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-9"
+                  />
+                </div>
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="w-[130px] h-9">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="user">Users</SelectItem>
+                    <SelectItem value="admin">Admins</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <UserTable 
+                profiles={filteredProfiles} 
+                onToggleRole={handleToggleRole} 
+                onToggleSubscriber={handleToggleSubscriber} 
+                onDelete={handleDeleteUser} 
               />
-            </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[130px] h-9">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="All Roles" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="user">Users</SelectItem>
-                <SelectItem value="admin">Admins</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Active</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProfiles.length > 0 ? (
-                filteredProfiles.map((profile: Profile) => (
-                  <TableRow key={profile.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">{profile.full_name || "N/A"}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-3 w-3" /> {profile.email}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <button 
-                        onClick={() => handleToggleRole(profile.id, profile.role)}
-                        className="transition-transform active:scale-95"
-                      >
-                        <Badge 
-                          variant={profile.role === 'admin' ? "default" : "secondary"}
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                        >
-                          {profile.role}
-                        </Badge>
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch 
-                          checked={profile.is_subscriber} 
-                          onCheckedChange={() => handleToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                        />
-                        {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the user profile for {profile.email}.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteUser(profile.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    No users found matching your search.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AdminStats({ metrics, profilesCount, adminsCount }: any) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <StatCard title="New Today" value={metrics?.today} icon={<TrendingUp className="h-4 w-4 text-green-500" />} description="Users registered today" />
+      <StatCard title="This Week" value={metrics?.week} icon={<Users className="h-4 w-4 text-primary" />} description="Users this week" />
+      <StatCard title="This Month" value={metrics?.month} icon={<Users className="h-4 w-4 text-muted-foreground" />} description="Users this month" />
+      <StatCard title="Admins" value={adminsCount} icon={<ShieldCheck className="h-4 w-4 text-primary" />} description="Total system admins" />
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon, description }: any) {
+  return (
+    <Card className="border-border/60">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value || 0}</div>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function GrowthChart({ data }: any) {
+  return (
+    <Card className="border-border/60">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="space-y-1">
+          <CardTitle>Growth Overview</CardTitle>
+          <CardDescription>User registration growth over the last 30 days.</CardDescription>
+        </div>
+        <BarChart3 className="h-5 w-5 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px] w-full mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.1)" />
+              <XAxis 
+                dataKey="date" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                minTickGap={30}
+              />
+              <YAxis 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--background))',
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="count" 
+                stroke="hsl(var(--primary))" 
+                fillOpacity={1} 
+                fill="url(#colorCount)" 
+                strokeWidth={2}
+                name="New Users"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function UserTable({ profiles, onToggleRole, onToggleSubscriber, onDelete }: any) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>User</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Last Active</TableHead>
+          <TableHead>Joined</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {profiles.length > 0 ? (
+          profiles.map((profile: Profile) => (
+            <TableRow key={profile.id}>
+              <TableCell>
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{profile.full_name || "N/A"}</span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Mail className="h-3 w-3" /> {profile.email}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <button 
+                  onClick={() => onToggleRole(profile.id, profile.role)}
+                  className="transition-transform active:scale-95"
+                >
+                  <Badge 
+                    variant={profile.role === 'admin' ? "default" : "secondary"}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    {profile.role}
+                  </Badge>
+                </button>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={profile.is_subscriber} 
+                    onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                  />
+                  {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                </div>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {profile.last_active_at ? format(new Date(profile.last_active_at), "MMM d, HH:mm") : "Never"}
+                </div>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {profile.createdAt ? format(new Date(profile.createdAt), "MMM d, yyyy") : "N/A"}
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+              No users found matching your search.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+function DeleteUserDialog({ profile, onDelete }: any) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete the user profile for {profile.email}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={onDelete}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function AdminSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-32 w-full" />
+        ))}
+      </div>
+      <Skeleton className="h-[300px] w-full" />
+      <Skeleton className="h-[400px] w-full" />
+    </div>
+  );
+}
     </div>
   );
 }
