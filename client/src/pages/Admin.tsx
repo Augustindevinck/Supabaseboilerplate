@@ -38,6 +38,16 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleRole = async (id: string, currentRole: "user" | "admin") => {
+    try {
+      const newRole = currentRole === "admin" ? "user" : "admin";
+      await updateProfile({ id, updates: { role: newRole } });
+      toast({ title: "Role Updated", description: `User is now an ${newRole}.` });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Update Failed", description: error.message });
+    }
+  };
+
   const handleDeleteUser = async (id: string) => {
     try {
       await deleteProfile(id);
@@ -140,9 +150,17 @@ export default function AdminPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={profile.role === 'admin' ? "default" : "secondary"}>
-                      {profile.role}
-                    </Badge>
+                    <button 
+                      onClick={() => handleToggleRole(profile.id, profile.role)}
+                      className="transition-transform active:scale-95"
+                    >
+                      <Badge 
+                        variant={profile.role === 'admin' ? "default" : "secondary"}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                      >
+                        {profile.role}
+                      </Badge>
+                    </button>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
