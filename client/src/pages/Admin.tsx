@@ -1,9 +1,9 @@
-import { useProfile, useAdminMetrics } from "@/hooks/use-supabase";
+import { useProfile, useAdminMetrics, useUserGrowth } from "@/hooks/use-supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,17 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@shared/schema";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from "recharts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,10 +61,11 @@ export default function AdminPage() {
   const [, setLocation] = useLocation();
   const { data: profiles, isLoading: isLoadingProfiles } = useAllProfiles();
   const { data: metrics, isLoading: isLoadingMetrics } = useAdminMetrics();
+  const { data: growthData, isLoading: isLoadingGrowth } = useUserGrowth();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
 
-  const isLoading = isLoadingProfiles || isLoadingMetrics;
+  const isLoading = isLoadingProfiles || isLoadingMetrics || isLoadingGrowth;
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
@@ -112,6 +124,7 @@ export default function AdminPage() {
             <Skeleton key={i} className="h-32 w-full" />
           ))}
         </div>
+        <Skeleton className="h-[300px] w-full" />
         <Skeleton className="h-[400px] w-full" />
       </div>
     );
@@ -170,6 +183,60 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/60">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <CardTitle>Growth Overview</CardTitle>
+            <CardDescription>User registration growth over the last 30 days.</CardDescription>
+          </div>
+          <BarChart3 className="h-5 w-5 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthData}>
+                <defs>
+                  <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground) / 0.1)" />
+                <XAxis 
+                  dataKey="date" 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  minTickGap={30}
+                />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--background))',
+                    borderColor: 'hsl(var(--border))',
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="count" 
+                  stroke="hsl(var(--primary))" 
+                  fillOpacity={1} 
+                  fill="url(#colorCount)" 
+                  strokeWidth={2}
+                  name="New Users"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-border/60">
         <CardHeader>

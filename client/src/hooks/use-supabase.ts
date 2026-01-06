@@ -79,7 +79,7 @@ export function useAdminMetrics() {
     queryFn: async () => {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-      const thisWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
+      const thisWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).toISOString();
       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
       const [
@@ -100,5 +100,50 @@ export function useAdminMetrics() {
     },
     enabled: isAdmin,
     refetchInterval: 1000 * 60, // Refresh every minute
+  });
+}
+
+/**
+ * Hook for fetching user growth data (Admin only)
+ */
+export function useUserGrowth() {
+  const { isAdmin } = useAuth();
+
+  return useQuery({
+    queryKey: ["user-growth"],
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .gte("created_at", thirtyDaysAgo.toISOString())
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      // Group by date
+      const counts: Record<string, number> = {};
+      data?.forEach(profile => {
+        const date = new Date(profile.created_at).toLocaleDateString();
+        counts[date] = (counts[date] || 0) + 1;
+      });
+
+      // Fill missing days and format for Recharts
+      const chartData = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString();
+        chartData.push({
+          date: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          count: counts[dateStr] || 0,
+        });
+      }
+
+      return chartData;
+    },
+    enabled: isAdmin,
   });
 }
