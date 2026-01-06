@@ -20,7 +20,9 @@ import {
   ShieldCheck, 
   Users, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Settings as SettingsIcon,
+  CreditCard
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -66,6 +68,32 @@ function AppSidebar() {
                   <Link href="/dashboard">
                     <LayoutDashboard />
                     <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={isActive("/billing")}
+                  tooltip="Billing"
+                >
+                  <Link href="/billing">
+                    <CreditCard />
+                    <span>Billing</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild 
+                  isActive={isActive("/settings")}
+                  tooltip="Settings"
+                >
+                  <Link href="/settings">
+                    <SettingsIcon />
+                    <span>Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

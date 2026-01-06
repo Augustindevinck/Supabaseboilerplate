@@ -10,6 +10,8 @@ import Landing from "@/pages/Landing";
 import AuthPage from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AdminPage from "@/pages/Admin";
+import Settings from "@/pages/Settings";
+import Billing from "@/pages/Billing";
 import { Loader2 } from "lucide-react";
 import { AUTH_CONFIG } from "@/config/auth";
 
@@ -55,6 +57,14 @@ function Router() {
       {/* Protected Routes */}
       <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
+      </Route>
+
+      <Route path="/settings">
+        <ProtectedRoute component={Settings} />
+      </Route>
+
+      <Route path="/billing">
+        <ProtectedRoute component={Billing} />
       </Route>
 
       {/* Admin Route */}
