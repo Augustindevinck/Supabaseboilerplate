@@ -29,7 +29,7 @@ SaaSify is a high-performance, minimalist SaaS boilerplate designed for Replit, 
 Create a project on Supabase and set the following **Secrets** in Replit:
 - `VITE_SUPABASE_URL`: Your project URL.
 - `VITE_SUPABASE_ANON_KEY`: Your project's anonymous key.
-- `DATABASE_URL`: Your project's connection string (e.g., `postgresql://postgres:[PASSWORD]@db.[REF].supabase.co:5432/postgres`).
+- `SUPABASE_SERVICE_ROLE_KEY`: Your project's service role key (for administrative operations).
 
 ### 2. SQL Setup
 Run the contents of `supabase_setup.sql` in the Supabase SQL Editor. This will:
