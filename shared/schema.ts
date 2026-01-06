@@ -22,6 +22,8 @@ export const insertProfileSchema = createInsertSchema(profiles, {
   full_name: z.string().min(2).max(100).optional(),
 });
 
+export const updateProfileSchema = insertProfileSchema.partial();
+
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
-export type UpdateProfileRequest = z.infer<typeof insertProfileSchema.partial()>;
+export type UpdateProfileRequest = z.infer<typeof updateProfileSchema>;
