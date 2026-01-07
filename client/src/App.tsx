@@ -14,6 +14,9 @@ import Dashboard from "@/pages/Dashboard";
 import AdminPage from "@/pages/Admin";
 import Settings from "@/pages/Settings";
 import Billing from "@/pages/Billing";
+import MentionsLegales from "@/pages/MentionsLegales";
+import CGU from "@/pages/CGU";
+import Confidentialite from "@/pages/Confidentialite";
 import { Loader2 } from "lucide-react";
 import { AUTH_CONFIG } from "@/config/auth";
 
@@ -46,10 +49,6 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   );
 }
 
-import MentionsLegales from "@/pages/MentionsLegales";
-import CGU from "@/pages/CGU";
-import Confidentialite from "@/pages/Confidentialite";
-
 function Router() {
   const { user } = useAuth();
 
@@ -60,6 +59,7 @@ function Router() {
       <Route path="/mentions-legales" component={MentionsLegales} />
       <Route path="/cgu" component={CGU} />
       <Route path="/confidentialite" component={Confidentialite} />
+      
       <Route path={AUTH_CONFIG.LOGIN_PATH}>
         {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <AuthPage />}
       </Route>
