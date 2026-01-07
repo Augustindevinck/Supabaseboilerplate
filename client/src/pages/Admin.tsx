@@ -58,7 +58,14 @@ export function useAllProfiles() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Ensure the return data matches the expected Profile type
+      // specifically handling the camelCase vs snake_case mapping from Supabase
+      return (data || []).map(p => ({
+        ...p,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at
+      })) as Profile[];
     },
     enabled: isAdmin,
   });
