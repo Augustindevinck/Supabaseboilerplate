@@ -41,6 +41,7 @@ export default function AuthPage() {
         });
         if (error) throw error;
         toast({ title: "Compte créé", description: "Veuillez vérifier vos emails pour confirmer votre inscription." });
+        setLocation("/login");
       }
     } catch (error: any) {
       toast({
