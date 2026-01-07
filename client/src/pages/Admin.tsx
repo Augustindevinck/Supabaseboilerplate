@@ -387,14 +387,9 @@ function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{profile.createdAt ? format(new Date(profile.createdAt), "dd/MM/yyyy") : "N/A"}</span>
-                        </div>
-                        <span className="text-[10px] opacity-70 ml-4 italic">
-                          {profile.createdAt ? format(new Date(profile.createdAt), "HH:mm") : ""}
-                        </span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{profile.createdAt ? format(new Date(profile.createdAt), "dd/MM/yyyy") : "N/A"}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
