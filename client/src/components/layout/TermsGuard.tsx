@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { queryClient } from "@/lib/queryClient";
 
 export function TermsGuard() {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, user } = useAuth();
   const { toast } = useToast();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -19,10 +20,12 @@ export function TermsGuard() {
 
   const handleAccept = async () => {
     try {
+      if (!user) return;
+      
       const { error } = await supabase
         .from("profiles")
         .update({ has_accepted_terms: true })
-        .eq("id", profile?.id);
+        .eq("id", user.id);
 
       if (error) throw error;
       
@@ -31,6 +34,9 @@ export function TermsGuard() {
         description: "Vous pouvez maintenant accéder à l'application.",
       });
       setIsOpen(false);
+      
+      // Invalider le cache pour forcer useAuth à recharger le profil
+      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
     } catch (error) {
       toast({
         variant: "destructive",

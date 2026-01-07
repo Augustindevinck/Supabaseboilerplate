@@ -79,7 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error("Error fetching profile:", error);
-        return { id: user.id, email: user.email ?? null, role: "user", is_subscriber: false } as Profile;
+        return { 
+          id: user.id, 
+          email: user.email ?? null, 
+          role: "user", 
+          is_subscriber: false,
+          has_accepted_terms: false 
+        } as Profile;
       }
       
       console.log("Profile fetched:", data); // Debug log
