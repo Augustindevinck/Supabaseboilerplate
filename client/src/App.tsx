@@ -52,9 +52,7 @@ function Router() {
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path={AUTH_CONFIG.LANDING_PATH}>
-        {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <Landing />}
-      </Route>
+      <Route path={AUTH_CONFIG.LANDING_PATH} component={Landing} />
       <Route path={AUTH_CONFIG.LOGIN_PATH}>
         {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <AuthPage />}
       </Route>
