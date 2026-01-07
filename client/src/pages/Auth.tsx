@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
@@ -15,6 +16,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTOS, setAcceptedTOS] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -40,6 +42,16 @@ export default function AuthPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLogin && !acceptedTOS) {
+      toast({
+        variant: "destructive",
+        title: "Acceptation requise",
+        description: "Vous devez accepter les conditions générales d'utilisation pour créer un compte.",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -74,6 +86,15 @@ export default function AuthPage() {
   };
 
   const handleGoogleAuth = async () => {
+    if (!isLogin && !acceptedTOS) {
+      toast({
+        variant: "destructive",
+        title: "Acceptation requise",
+        description: "Veuillez accepter les conditions générales d'utilisation avant de continuer avec Google.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -106,6 +127,23 @@ export default function AuthPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {!isLogin && (
+              <div className="flex items-start space-x-3 p-3 rounded-lg bg-secondary/50 border border-border/40">
+                <Checkbox 
+                  id="tos-main" 
+                  checked={acceptedTOS} 
+                  onCheckedChange={(checked) => setAcceptedTOS(checked as boolean)}
+                  className="mt-1"
+                />
+                <Label 
+                  htmlFor="tos-main" 
+                  className="text-sm leading-tight font-normal cursor-pointer"
+                >
+                  J'accepte les <Link href="/cgu" className="text-primary hover:underline font-medium">Conditions Générales d'Utilisation</Link> et la <Link href="/confidentialite" className="text-primary hover:underline font-medium">Politique de Confidentialité</Link>.
+                </Label>
+              </div>
+            )}
+
             <Button 
               type="button"
               variant="outline" 
