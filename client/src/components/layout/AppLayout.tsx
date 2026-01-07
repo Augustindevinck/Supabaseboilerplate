@@ -86,7 +86,6 @@ function AppSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive("/admin")}
-                    className="text-primary hover:text-primary"
                     tooltip="Aperçu Admin"
                   >
                     <Link href="/admin" className="flex items-center gap-2 w-full">
