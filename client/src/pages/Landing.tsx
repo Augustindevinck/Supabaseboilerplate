@@ -273,8 +273,25 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="py-12 border-t border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2024 SaaS Boilerplate. Tous droits réservés.</p>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-1.5 rounded-lg">
+                <div className="bg-primary w-3 h-3 rounded-full" />
+              </div>
+              <span className="font-display font-bold text-lg tracking-tight">SaaSify</span>
+            </div>
+            
+            <nav className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+              <Link href="/mentions-legales" className="hover:text-primary transition-colors">Mentions Légales</Link>
+              <Link href="/cgu" className="hover:text-primary transition-colors">CGU</Link>
+              <Link href="/confidentialite" className="hover:text-primary transition-colors">Confidentialité</Link>
+            </nav>
+
+            <p className="text-sm text-muted-foreground">
+              © 2024 SaaSify. Tous droits réservés.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
