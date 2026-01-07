@@ -95,8 +95,7 @@ export default function Landing() {
           </motion.h1>
           
           <motion.p variants={itemVariants} className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Un boilerplate complet avec Supabase Auth, Base de données et une interface moderne.
-            Arrêtez de perdre du temps sur la configuration et commencez à construire votre produit.
+            Un boilerplate complet avec Supabase et une interface moderne pour lancer votre produit sans perdre de temps.
           </motion.p>
           
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -106,9 +105,6 @@ export default function Landing() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="rounded-full h-14 px-8 text-lg bg-background/50 backdrop-blur border-2">
-              Voir la Documentation
-            </Button>
           </motion.div>
         </motion.div>
       </section>
