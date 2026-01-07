@@ -34,8 +34,8 @@ function FloatingHeader() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <Link href="/dashboard">
-              <Button size="sm" className="rounded-full px-6">Tableau de Bord</Button>
+            <Link href="/app">
+              <Button size="sm" className="rounded-full px-6">App</Button>
             </Link>
           ) : (
             <>

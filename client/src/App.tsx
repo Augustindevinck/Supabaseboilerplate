@@ -68,7 +68,7 @@ function Router() {
       </Route>
 
       {/* Protected Routes */}
-      <Route path="/dashboard">
+      <Route path="/app">
         <ProtectedRoute component={Dashboard} />
       </Route>
 

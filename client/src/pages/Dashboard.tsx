@@ -44,7 +44,7 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Tableau de bord</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight">App</h1>
           <p className="text-muted-foreground text-lg">
             Ravi de vous revoir, {profile?.full_name || profile?.email || user?.email}
           </p>

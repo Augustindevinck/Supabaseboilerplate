@@ -64,12 +64,12 @@ function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   asChild 
-                  isActive={isActive("/dashboard")}
-                  tooltip="Tableau de bord"
+                  isActive={isActive("/app")}
+                  tooltip="App"
                 >
-                  <Link href="/dashboard" className="flex items-center gap-2 w-full">
+                  <Link href="/app" className="flex items-center gap-2 w-full">
                     <LayoutDashboard className="shrink-0" />
-                    {!isCollapsed && <span className="truncate">Tableau de bord</span>}
+                    {!isCollapsed && <span className="truncate">App</span>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
