@@ -27,24 +27,24 @@ export default function Settings() {
     if (!user) return;
     try {
       await updateProfile({ id: user.id, updates: { full_name: data.full_name || "" } });
-      toast({ title: "Profile updated", description: "Your changes have been saved." });
+      toast({ title: "Profil mis à jour", description: "Vos modifications ont été enregistrées." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
     }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and preferences.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Paramètres</h1>
+        <p className="text-muted-foreground">Gérez votre compte et vos préférences.</p>
       </div>
 
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your personal details.</CardDescription>
+            <CardTitle>Informations Personnelles</CardTitle>
+            <CardDescription>Mettez à jour vos informations de profil.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -55,23 +55,23 @@ export default function Settings() {
                     name="full_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name</FormLabel>
+                        <FormLabel>Nom Complet</FormLabel>
                         <FormControl>
-                          <Input placeholder="John Doe" {...field} />
+                          <Input placeholder="Jean Dupont" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <div className="space-y-2">
-                    <Label>Email Address</Label>
+                    <Label>Adresse Email</Label>
                     <Input value={user?.email || ""} disabled className="bg-muted" />
-                    <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
+                    <p className="text-xs text-muted-foreground">L'email ne peut pas être modifié.</p>
                   </div>
                 </div>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                   {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Changes
+                  Enregistrer les modifications
                 </Button>
               </form>
             </Form>
@@ -81,16 +81,16 @@ export default function Settings() {
         {profile?.role === "admin" && (
           <Card>
             <CardHeader>
-              <CardTitle>Account Status</CardTitle>
-              <CardDescription>Review your account permissions.</CardDescription>
+              <CardTitle>Statut du Compte</CardTitle>
+              <CardDescription>Consultez vos permissions d'accès.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4 p-4 border rounded-lg">
                 <Shield className="h-8 w-8 text-primary" />
                 <div>
-                  <p className="font-medium capitalize">Role: {profile?.role || "User"}</p>
+                  <p className="font-medium capitalize">Rôle : Administrateur</p>
                   <p className="text-sm text-muted-foreground">
-                    You have full administrative access to the platform.
+                    Vous avez un accès administratif complet à la plateforme.
                   </p>
                 </div>
               </div>

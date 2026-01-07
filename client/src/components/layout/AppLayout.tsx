@@ -50,7 +50,7 @@ function AppSidebar() {
           </div>
           {!isCollapsed && (
             <span className="font-display font-bold text-lg truncate animate-in fade-in duration-300">
-              SaaS Boilerplate
+              SaaSify
             </span>
           )}
         </div>
@@ -65,11 +65,11 @@ function AppSidebar() {
                 <SidebarMenuButton 
                   asChild 
                   isActive={isActive("/dashboard")}
-                  tooltip="Dashboard"
+                  tooltip="Tableau de bord"
                 >
                   <Link href="/dashboard" className="flex items-center gap-2 w-full">
                     <LayoutDashboard className="shrink-0" />
-                    {!isCollapsed && <span className="truncate">Dashboard</span>}
+                    {!isCollapsed && <span className="truncate">Tableau de bord</span>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -87,11 +87,11 @@ function AppSidebar() {
                     asChild 
                     isActive={isActive("/admin")}
                     className="text-primary hover:text-primary"
-                    tooltip="Admin Overview"
+                    tooltip="Aperçu Admin"
                   >
                     <Link href="/admin" className="flex items-center gap-2 w-full">
                       <ShieldCheck className="shrink-0" />
-                      {!isCollapsed && <span className="truncate">Admin Overview</span>}
+                      {!isCollapsed && <span className="truncate">Aperçu Admin</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -99,11 +99,11 @@ function AppSidebar() {
                   <SidebarMenuButton 
                     asChild 
                     isActive={isActive("/admin/users")}
-                    tooltip="User Management"
+                    tooltip="Gestion Utilisateurs"
                   >
                     <Link href="/admin/users" className="flex items-center gap-2 w-full">
                       <Users className="shrink-0" />
-                      {!isCollapsed && <span className="truncate">Users</span>}
+                      {!isCollapsed && <span className="truncate">Utilisateurs</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -128,7 +128,7 @@ function AppSidebar() {
               {!isCollapsed && (
                 <>
                   <div className="grid flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
-                    <span className="truncate font-semibold">{profile?.role === 'admin' ? 'Administrator' : 'User'}</span>
+                    <span className="truncate font-semibold">{profile?.role === 'admin' ? 'Administrateur' : 'Utilisateur'}</span>
                     <span className="truncate text-xs">{profile?.email}</span>
                   </div>
                   <ChevronRight className="ml-auto size-4 shrink-0" />
@@ -145,19 +145,19 @@ function AppSidebar() {
             <DropdownMenuItem asChild>
               <Link href="/settings" className="flex w-full items-center cursor-pointer">
                 <SettingsIcon className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>Paramètres</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/billing" className="flex w-full items-center cursor-pointer">
                 <CreditCard className="mr-2 h-4 w-4" />
-                <span>Billing</span>
+                <span>Facturation</span>
               </Link>
             </DropdownMenuItem>
             <div className="my-1 h-px bg-muted" />
             <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>Déconnexion</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -174,7 +174,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-muted-foreground font-medium animate-pulse">Loading SaaS Platform...</p>
+          <p className="text-muted-foreground font-medium animate-pulse">Chargement de la plateforme...</p>
         </div>
       </div>
     );

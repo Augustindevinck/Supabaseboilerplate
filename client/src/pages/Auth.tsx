@@ -30,9 +30,7 @@ export default function AuthPage() {
           password,
         });
         if (error) throw error;
-        toast({ title: "Welcome back!", description: "Successfully logged in." });
-        // No need for setLocation("/dashboard") here as App.tsx will handle the redirect
-        // when the auth state changes and the user is detected.
+        toast({ title: "Bon retour !", description: "Connexion réussie." });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -42,12 +40,12 @@ export default function AuthPage() {
           }
         });
         if (error) throw error;
-        toast({ title: "Account created", description: "Please check your email to verify your account." });
+        toast({ title: "Compte créé", description: "Veuillez vérifier vos emails pour confirmer votre inscription." });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Erreur",
         description: error.message,
       });
     } finally {
@@ -68,7 +66,7 @@ export default function AuthPage() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Erreur",
         description: error.message,
       });
       setIsLoading(false);
@@ -80,10 +78,10 @@ export default function AuthPage() {
       <Card className="w-full max-w-md shadow-2xl shadow-black/5 border-border/60">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-display font-bold text-center">
-            {isLogin ? "Welcome back" : "Create an account"}
+            {isLogin ? "Bon retour parmi nous" : "Créer un compte"}
           </CardTitle>
           <CardDescription className="text-center">
-            Enter your email below to {isLogin ? "login to your account" : "create your account"}
+            {isLogin ? "Entrez vos identifiants pour vous connecter" : "Entrez votre email pour commencer"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,7 +95,7 @@ export default function AuthPage() {
               data-testid="button-google-auth"
             >
               <SiGoogle className="mr-2 h-5 w-5" />
-              {isLogin ? "Sign in with Google" : "Sign up with Google"}
+              {isLogin ? "Se connecter avec Google" : "S'inscrire avec Google"}
             </Button>
 
             <Separator className="my-4" />
@@ -108,7 +106,7 @@ export default function AuthPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="nom@exemple.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -117,7 +115,7 @@ export default function AuthPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   id="password"
                   type="password"
@@ -135,7 +133,7 @@ export default function AuthPage() {
                 data-testid="button-auth-submit"
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLogin ? "Sign In" : "Sign Up"}
+                {isLogin ? "Se connecter" : "S'inscrire"}
               </Button>
             </form>
           </div>
@@ -146,7 +144,7 @@ export default function AuthPage() {
             onClick={() => setLocation(isLogin ? "/register" : "/login")}
             className="text-muted-foreground hover:text-primary transition-colors"
           >
-            {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+            {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
           </Button>
         </CardFooter>
       </Card>

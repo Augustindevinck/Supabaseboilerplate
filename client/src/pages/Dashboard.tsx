@@ -44,9 +44,9 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight">Tableau de bord</h1>
           <p className="text-muted-foreground text-lg">
-            Welcome back, {profile?.email || user?.email}
+            Ravi de vous revoir, {profile?.full_name || profile?.email || user?.email}
           </p>
         </div>
       </div>
@@ -55,9 +55,9 @@ export default function Dashboard() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
           <Activity className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-xl font-semibold mb-2">Ready to Build</h2>
+        <h2 className="text-xl font-semibold mb-2">Prêt à construire</h2>
         <p className="text-muted-foreground max-w-sm mx-auto">
-          Your boilerplate is set up and connected to Supabase. Start adding your custom features and components here.
+          Votre boilerplate est configuré et connecté à Supabase. Commencez à ajouter vos fonctionnalités personnalisées ici.
         </p>
       </div>
     </div>

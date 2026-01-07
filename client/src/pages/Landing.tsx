@@ -25,23 +25,23 @@ function FloatingHeader() {
         </div>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-          <a href="#features" className="hover:text-primary transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
+          <a href="#features" className="hover:text-primary transition-colors">Fonctionnalités</a>
+          <a href="#pricing" className="hover:text-primary transition-colors">Tarifs</a>
           <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
         </nav>
 
         <div className="flex items-center gap-3">
           {user ? (
             <Link href="/dashboard">
-              <Button size="sm" className="rounded-full px-6">Dashboard</Button>
+              <Button size="sm" className="rounded-full px-6">Tableau de Bord</Button>
             </Link>
           ) : (
             <>
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="rounded-full hidden sm:flex">Log in</Button>
+                <Button variant="ghost" size="sm" className="rounded-full hidden sm:flex">Connexion</Button>
               </Link>
               <Link href="/register">
-                <Button size="sm" className="rounded-full px-6 shadow-lg shadow-primary/20">Get Started</Button>
+                <Button size="sm" className="rounded-full px-6 shadow-lg shadow-primary/20">Démarrer</Button>
               </Link>
             </>
           )}
@@ -86,38 +86,29 @@ export default function Landing() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            v2.0 is now available
+            La v2.0 est maintenant disponible
           </motion.div>
           
           <motion.h1 variants={itemVariants} className="font-display text-5xl md:text-7xl font-bold leading-[1.1] tracking-tight text-balance">
-            Build your next SaaS <br />
-            <span className="text-gradient">faster than ever</span>
+            Lancez votre prochain SaaS <br />
+            <span className="text-gradient">plus vite que jamais</span>
           </motion.h1>
           
           <motion.p variants={itemVariants} className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            A complete boilerplate with Supabase Auth, Database, and a stunning UI. 
-            Stop wasting time on setup and start building your product.
+            Un boilerplate complet avec Supabase Auth, Base de données et une interface moderne.
+            Arrêtez de perdre du temps sur la configuration et commencez à construire votre produit.
           </motion.p>
           
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link href="/register">
               <Button size="lg" className="rounded-full h-14 px-8 text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
-                Start Building Free
+                Démarrer gratuitement
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="rounded-full h-14 px-8 text-lg bg-background/50 backdrop-blur border-2">
-              View Documentation
+              Voir la Documentation
             </Button>
-          </motion.div>
-
-          {/* Social Proof / Trust */}
-          <motion.div variants={itemVariants} className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Placeholders for logos */}
-            <div className="flex items-center justify-center font-bold text-xl">Acme Corp</div>
-            <div className="flex items-center justify-center font-bold text-xl">GlobalBank</div>
-            <div className="flex items-center justify-center font-bold text-xl">NextGen</div>
-            <div className="flex items-center justify-center font-bold text-xl">Stripe</div>
           </motion.div>
         </motion.div>
       </section>
@@ -126,9 +117,9 @@ export default function Landing() {
       <section id="features" className="py-24 md:py-32 px-4 bg-secondary/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="font-display text-3xl md:text-4xl font-bold">Everything you need</h2>
+            <h2 className="font-display text-3xl md:text-4xl font-bold">Tout ce dont vous avez besoin</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              We've included all the essential features so you don't have to build them from scratch.
+              Nous avons inclus toutes les fonctionnalités essentielles pour que vous n'ayez pas à les construire de zéro.
             </p>
           </div>
 
@@ -136,18 +127,18 @@ export default function Landing() {
             {[
               {
                 icon: Zap,
-                title: "Lightning Fast",
-                desc: "Built on Vite and React for instant page loads and hot reloading."
+                title: "Ultra Rapide",
+                desc: "Basé sur Vite et React pour des chargements instantanés et un développement fluide."
               },
               {
                 icon: Shield,
-                title: "Secure by Default",
-                desc: "Enterprise-grade authentication and RLS policies via Supabase."
+                title: "Sécurisé par Défaut",
+                desc: "Authentification de niveau entreprise et politiques RLS via Supabase."
               },
               {
                 icon: Globe,
-                title: "Global Scale",
-                desc: "Deploy anywhere. Your database and assets are edge-ready."
+                title: "Échelle Mondiale",
+                desc: "Déployez n'importe où. Votre base de données et vos assets sont prêts pour le Edge."
               }
             ].map((feature, i) => (
               <div key={i} className="bg-card p-8 rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-all">
@@ -166,16 +157,16 @@ export default function Landing() {
       <section id="faq" className="py-24 md:py-32 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16 space-y-4">
-            <h2 className="font-display text-3xl md:text-4xl font-bold">Frequently Asked Questions</h2>
-            <p className="text-muted-foreground">Got questions? We've got answers.</p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold">Questions Fréquentes</h2>
+            <p className="text-muted-foreground">Vous avez des questions ? Nous avons les réponses.</p>
           </div>
 
           <Accordion type="single" collapsible className="w-full space-y-4">
             {[
-              { q: "Is this free to use?", a: "Yes! This boilerplate is open source and free to use for personal and commercial projects." },
-              { q: "Do I need Supabase?", a: "Yes, this stack is tightly integrated with Supabase for auth and database. It saves you weeks of backend work." },
-              { q: "Can I host this on Vercel?", a: "Absolutely. The frontend is a standard React SPA that can be deployed to Vercel, Netlify, or Replit." },
-              { q: "Does it include payments?", a: "Not out of the box, but it's easy to integrate Stripe using their JS SDK." }
+              { q: "Est-ce gratuit ?", a: "Oui ! Ce boilerplate est open source et gratuit pour vos projets personnels et commerciaux." },
+              { q: "Dois-je utiliser Supabase ?", a: "Oui, cette pile est étroitement intégrée à Supabase pour l'authentification et la base de données. Cela vous fait gagner des semaines de travail backend." },
+              { q: "Puis-je l'héberger sur Vercel ?", a: "Absolument. Le frontend est une application React standard qui peut être déployée sur Vercel, Netlify ou Replit." },
+              { q: "Est-ce que ça inclut les paiements ?", a: "Pas nativement, mais il est très facile d'intégrer Stripe en utilisant leur SDK JS." }
             ].map((item, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="border rounded-xl px-6 bg-card shadow-sm">
                 <AccordionTrigger className="font-display font-medium text-lg py-6 hover:text-primary transition-colors">
@@ -193,7 +184,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="py-12 border-t border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 text-center text-muted-foreground">
-          <p>© 2024 SaaS Boilerplate. All rights reserved.</p>
+          <p>© 2024 SaaS Boilerplate. Tous droits réservés.</p>
         </div>
       </footer>
     </div>
