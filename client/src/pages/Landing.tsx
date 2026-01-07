@@ -149,6 +149,98 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 md:py-32 px-4 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold">Des tarifs simples et transparents</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Choisissez le plan qui correspond le mieux à vos besoins de croissance.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {[
+              {
+                name: "Gratuit",
+                price: "0€",
+                description: "Parfait pour explorer et tester vos idées.",
+                features: [
+                  "Jusqu'à 3 projets",
+                  "Analyses de base",
+                  "Support communautaire",
+                  "Déploiement illimité"
+                ],
+                cta: "Commencer gratuitement",
+                recommended: false
+              },
+              {
+                name: "Pro",
+                price: "29€",
+                description: "Pour les projets sérieux et les équipes.",
+                features: [
+                  "Projets illimités",
+                  "Analyses avancées",
+                  "Support prioritaire",
+                  "Domaines personnalisés",
+                  "Sauvegardes quotidiennes"
+                ],
+                cta: "Passer à l'offre Pro",
+                recommended: true
+              }
+            ].map((plan, i) => (
+              <div 
+                key={i} 
+                className={`relative p-8 rounded-3xl border transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+                  plan.recommended 
+                    ? "bg-card border-primary shadow-xl shadow-primary/5" 
+                    : "bg-background border-border/50"
+                }`}
+              >
+                {plan.recommended && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full uppercase tracking-widest shadow-lg">
+                    Recommandé
+                  </div>
+                )}
+                
+                <div className="mb-8">
+                  <h3 className="font-display text-2xl font-bold mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
+                    <span className="text-muted-foreground">/mois</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{plan.description}</p>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className="flex items-center gap-3 text-sm">
+                      <CheckCircle2 className={`w-5 h-5 shrink-0 ${plan.recommended ? "text-primary" : "text-muted-foreground/50"}`} />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link href="/register">
+                  <Button 
+                    className={`w-full rounded-full h-12 text-base font-semibold transition-all ${
+                      plan.recommended 
+                        ? "shadow-lg shadow-primary/20" 
+                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    }`}
+                    variant={plan.recommended ? "default" : "secondary"}
+                  >
+                    {plan.cta}
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section id="faq" className="py-24 md:py-32 px-4">
         <div className="max-w-3xl mx-auto">
