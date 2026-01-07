@@ -12,6 +12,7 @@ type Profile = {
   full_name: string | null;
   role: "user" | "admin";
   is_subscriber: boolean;
+  has_accepted_terms: boolean;
 };
 
 type AuthContextType = {

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     email TEXT,
     role TEXT DEFAULT 'user' NOT NULL,
     is_subscriber BOOLEAN DEFAULT FALSE NOT NULL,
+    has_accepted_terms BOOLEAN DEFAULT FALSE NOT NULL,
     stripe_customer_id TEXT,
     stripe_subscription_id TEXT,
     subscription_status TEXT,
@@ -94,13 +95,14 @@ BEGIN
         NEW.raw_user_meta_data->>'photo_url'
     );
 
-    INSERT INTO public.profiles (id, email, full_name, avatar_url, role)
+    INSERT INTO public.profiles (id, email, full_name, avatar_url, role, has_accepted_terms)
     VALUES (
         NEW.id, 
         NEW.email, 
         extracted_name,
         extracted_avatar,
-        'user'
+        'user',
+        COALESCE((NEW.raw_user_meta_data->>'has_accepted_terms')::boolean, false)
     )
     ON CONFLICT (id) DO UPDATE SET
         email = EXCLUDED.email,
