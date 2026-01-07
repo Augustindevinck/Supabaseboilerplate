@@ -95,7 +95,14 @@ BEGIN
         NEW.raw_user_meta_data->>'photo_url'
     );
 
-    INSERT INTO public.profiles (id, email, full_name, avatar_url, role, has_accepted_terms)
+    INSERT INTO public.profiles (
+        id, 
+        email, 
+        full_name, 
+        avatar_url, 
+        role, 
+        has_accepted_terms
+    )
     VALUES (
         NEW.id, 
         NEW.email, 
