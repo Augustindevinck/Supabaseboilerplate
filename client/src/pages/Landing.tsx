@@ -18,10 +18,12 @@ function FloatingHeader() {
         className="bg-background/80 backdrop-blur-xl border border-border/50 pointer-events-auto flex items-center justify-between px-6 py-3 rounded-full w-full max-w-5xl shadow-xl shadow-black/5"
       >
         <div className="flex items-center gap-2">
-          <div className="bg-primary/10 p-1.5 rounded-lg">
-            <div className="bg-primary w-4 h-4 rounded-full" />
-          </div>
-          <span className="font-display font-bold text-xl tracking-tight">SaaSify</span>
+          <Link href="/" className="flex items-center gap-2 pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity">
+            <div className="bg-primary/10 p-1.5 rounded-lg">
+              <div className="bg-primary w-4 h-4 rounded-full" />
+            </div>
+            <span className="font-display font-bold text-xl tracking-tight">SaaSify</span>
+          </Link>
         </div>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
