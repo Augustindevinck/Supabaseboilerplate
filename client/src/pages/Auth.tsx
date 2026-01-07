@@ -44,15 +44,6 @@ export default function AuthPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isLogin && !acceptedTOS) {
-      toast({
-        variant: "destructive",
-        title: "Acceptation requise",
-        description: "Vous devez accepter les conditions générales d'utilisation pour créer un compte.",
-      });
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -69,6 +60,9 @@ export default function AuthPage() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/app`,
+            data: {
+              has_accepted_terms: true
+            }
           }
         });
         if (error) throw error;
@@ -88,15 +82,6 @@ export default function AuthPage() {
   };
 
   const handleGoogleAuth = async () => {
-    if (!isLogin && !acceptedTOS) {
-      toast({
-        variant: "destructive",
-        title: "Acceptation requise",
-        description: "Veuillez accepter les conditions générales d'utilisation avant de continuer avec Google.",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -130,23 +115,6 @@ export default function AuthPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {!isLogin && (
-              <div className="flex items-start space-x-3 p-3 rounded-lg bg-secondary/50 border border-border/40">
-                <Checkbox 
-                  id="tos-main" 
-                  checked={acceptedTOS} 
-                  onCheckedChange={(checked) => setAcceptedTOS(checked as boolean)}
-                  className="mt-1"
-                />
-                <Label 
-                  htmlFor="tos-main" 
-                  className="text-sm leading-tight font-normal cursor-pointer"
-                >
-                  J'accepte les <Link href="/cgu" className="text-primary hover:underline font-medium">Conditions Générales d'Utilisation</Link> et la <Link href="/confidentialite" className="text-primary hover:underline font-medium">Politique de Confidentialité</Link>.
-                </Label>
-              </div>
-            )}
-
             <Button 
               type="button"
               variant="outline" 

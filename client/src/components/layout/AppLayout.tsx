@@ -31,6 +31,7 @@ import {
   DropdownMenuItem 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { TermsGuard } from "./TermsGuard";
 
 function AppSidebar() {
   const [location] = useLocation();
@@ -182,6 +183,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
+        <TermsGuard />
         <AppSidebar />
         <main className="flex-1 overflow-hidden flex flex-col min-w-0 transition-[margin]">
           <header className="flex h-16 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
