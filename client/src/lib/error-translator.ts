@@ -49,15 +49,21 @@ export function translateSupabaseError(error: any): { title: string; description
     "anonymous_provider_disabled": {
       title: "Connexion anonyme désactivée",
       description: "Les connexions anonymes ne sont pas autorisées sur cette application."
+    },
+    "Confirmation_token_not_found": {
+      title: "Lien expiré",
+      description: "Le lien de confirmation a expiré ou a déjà été utilisé."
+    },
+    "Provider disabled": {
+      title: "Service indisponible",
+      description: "La connexion via ce fournisseur (ex: Google) est actuellement désactivée."
     }
   };
 
-  // Check for specific Supabase error codes if available
-  if (error?.status === 429) {
+  if (error?.status === 429 || error?.code === "over_query_limit") {
     return errorMap["Too many requests"];
   }
 
-  // Search in our map
   const message = error?.message || "";
   for (const key in errorMap) {
     if (message.includes(key) || error?.code === key) {
@@ -65,7 +71,10 @@ export function translateSupabaseError(error: any): { title: string; description
     }
   }
 
-  // Default error
+  if (message.toLowerCase().includes("email")) {
+    return errorMap["Invalid email"];
+  }
+
   return {
     title: "Une erreur est survenue",
     description: message || "Une erreur inattendue s'est produite. Veuillez contacter le support si le problème persiste."

@@ -231,9 +231,9 @@ export default function AuthPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button 
-            variant="link" 
+            variant="ghost" 
             onClick={() => setLocation(isLogin ? "/register" : "/login")}
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-muted-foreground hover:text-primary transition-colors h-auto p-0 hover:bg-transparent"
           >
             {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
           </Button>
