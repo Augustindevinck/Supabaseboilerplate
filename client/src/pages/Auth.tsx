@@ -20,6 +20,24 @@ export default function AuthPage() {
 
   const isLogin = location === "/login";
 
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return { score: 0, label: "", color: "bg-muted" };
+    if (pass.length < 6) return { score: 1, label: "Trop court", color: "bg-destructive" };
+    
+    let score = 1;
+    if (pass.length > 8) score++;
+    if (/[A-Z]/.test(pass)) score++;
+    if (/[0-9]/.test(pass)) score++;
+    if (/[^A-Za-z0-9]/.test(pass)) score++;
+    
+    if (score <= 2) return { score: 2, label: "Faible", color: "bg-orange-500" };
+    if (score <= 3) return { score: 3, label: "Moyen", color: "bg-yellow-500" };
+    if (score <= 4) return { score: 4, label: "Fort", color: "bg-green-500" };
+    return { score: 5, label: "Excellent", color: "bg-emerald-600" };
+  };
+
+  const strength = getPasswordStrength(password);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -143,6 +161,20 @@ export default function AuthPage() {
                     )}
                   </Button>
                 </div>
+                {!isLogin && password && (
+                  <div className="space-y-1.5 mt-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground">Robustesse:</span>
+                      <span className="font-medium">{strength.label}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all duration-300 ${strength.color}`} 
+                        style={ { width: `${(strength.score / 5) * 100}%` } }
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <Button 
                 type="submit" 
