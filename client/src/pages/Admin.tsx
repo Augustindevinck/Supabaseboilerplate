@@ -203,8 +203,8 @@ function AccessDenied({ setLocation }: { setLocation: any }) {
       <p className="text-muted-foreground max-w-md">
         Vous n'avez pas les permissions nécessaires pour voir cette page. Cette zone est réservée aux administrateurs.
       </p>
-      <Button onClick={() => setLocation("/dashboard")}>
-        Retour au Tableau de Bord
+      <Button onClick={() => setLocation("/app")}>
+        Retour à l'application
       </Button>
     </div>
   );

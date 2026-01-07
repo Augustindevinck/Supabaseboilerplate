@@ -44,7 +44,7 @@ function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="h-16 flex items-center justify-center border-b border-border/20 overflow-hidden">
-        <Link href="/dashboard" className="flex items-center justify-center gap-2 px-2 w-full hover:opacity-80 transition-opacity">
+        <Link href="/app" className="flex items-center justify-center gap-2 px-2 w-full hover:opacity-80 transition-opacity">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             S
           </div>
