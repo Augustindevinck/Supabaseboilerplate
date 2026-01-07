@@ -65,21 +65,59 @@ export function useAllProfiles() {
 }
 
 /**
- * Admin Portal Main Page
+ * Admin Portal Main Page (Dashboard Only)
  */
 export default function AdminPage() {
   const { isAdmin } = useAuth();
   const [, setLocation] = useLocation();
-  const { data: profiles, isLoading: isLoadingProfiles } = useAllProfiles();
+  const [location] = useLocation();
+  const { data: profiles } = useAllProfiles();
   const { data: metrics, isLoading: isLoadingMetrics } = useAdminMetrics();
   const { data: growthData, isLoading: isLoadingGrowth } = useUserGrowth();
+  
+  const isUsersPage = location === "/admin/users";
+
+  const isLoading = isLoadingMetrics || isLoadingGrowth;
+
+  if (!isAdmin && !isLoading) {
+    return <AccessDenied setLocation={setLocation} />;
+  }
+
+  if (isUsersPage) {
+    return <UsersManagementPage />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-display font-bold tracking-tight">Portail Administrateur</h1>
+        <p className="text-muted-foreground text-lg">
+          Aperçu global et statistiques du système.
+        </p>
+      </div>
+
+      {isLoading ? (
+        <AdminSkeleton />
+      ) : (
+        <>
+          <AdminStats metrics={metrics} profiles={profiles} />
+          <GrowthChart data={growthData} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Dedicated User Management Page
+ */
+function UsersManagementPage() {
+  const { data: profiles, isLoading } = useAllProfiles();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-
-  const isLoading = isLoadingProfiles || isLoadingMetrics || isLoadingGrowth;
 
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
@@ -121,36 +159,31 @@ export default function AdminPage() {
     }
   };
 
-  if (!isAdmin && !isLoading) {
-    return <AccessDenied setLocation={setLocation} />;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-display font-bold tracking-tight">Portail Administrateur</h1>
+        <h1 className="text-3xl font-display font-bold tracking-tight">Gestion des Utilisateurs</h1>
         <p className="text-muted-foreground text-lg">
-          Gérez les utilisateurs et surveillez les accès au système.
+          Consultez et modifiez les comptes utilisateurs du système.
         </p>
       </div>
 
       {isLoading ? (
-        <AdminSkeleton />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
       ) : (
-        <>
-          <AdminStats metrics={metrics} profiles={profiles} />
-          <GrowthChart data={growthData} />
-          <UserManagement 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            roleFilter={roleFilter}
-            setRoleFilter={setRoleFilter}
-            profiles={filteredProfiles}
-            onToggleRole={handleToggleRole}
-            onToggleSubscriber={handleToggleSubscriber}
-            onDelete={handleDeleteUser}
-          />
-        </>
+        <UserManagement 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          roleFilter={roleFilter}
+          setRoleFilter={setRoleFilter}
+          profiles={filteredProfiles}
+          onToggleRole={handleToggleRole}
+          onToggleSubscriber={handleToggleSubscriber}
+          onDelete={handleDeleteUser}
+        />
       )}
     </div>
   );
