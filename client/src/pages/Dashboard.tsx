@@ -57,7 +57,7 @@ export default function Dashboard() {
         </div>
         <h2 className="text-xl font-semibold mb-2">Prêt à construire</h2>
         <p className="text-muted-foreground max-w-sm mx-auto">
-          Votre boilerplate est configuré et connecté à Supabase. Commencez à ajouter vos fonctionnalités personnalisées ici.
+          Votre boilerplate a bien été configuré. Vous pouvez désormais commencer sur une base saine avec création de compte fonctionnelle, base de donnée, gestion admin. Commencez à changer les éléments à votre façon, ajoutez vos pages, et tout ce que vous souhaitez retrouver sur votre SaaS.
         </p>
       </div>
     </div>
