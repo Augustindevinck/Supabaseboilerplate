@@ -31,9 +31,9 @@ export default function AuthPage() {
     if (/[^A-Za-z0-9]/.test(pass)) score++;
     
     if (score <= 2) return { score: 2, label: "Faible", color: "bg-orange-500" };
-    if (score <= 3) return { score: 3, label: "Moyen", color: "bg-yellow-500" };
-    if (score <= 4) return { score: 4, label: "Fort", color: "bg-green-500" };
-    return { score: 5, label: "Excellent", color: "bg-emerald-600" };
+    if (score <= 3) return { score: 3, label: "Moyenne", color: "bg-yellow-500" };
+    if (score <= 4) return { score: 4, label: "Forte", color: "bg-green-500" };
+    return { score: 5, label: "Excellente", color: "bg-emerald-600" };
   };
 
   const strength = getPasswordStrength(password);
