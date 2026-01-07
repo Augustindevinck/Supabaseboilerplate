@@ -46,6 +46,10 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   );
 }
 
+import MentionsLegales from "@/pages/MentionsLegales";
+import CGU from "@/pages/CGU";
+import Confidentialite from "@/pages/Confidentialite";
+
 function Router() {
   const { user } = useAuth();
 
@@ -53,9 +57,9 @@ function Router() {
     <Switch>
       {/* Public Routes */}
       <Route path={AUTH_CONFIG.LANDING_PATH} component={Landing} />
-      <Route path="/mentions-legales" component={NotFound} />
-      <Route path="/cgu" component={NotFound} />
-      <Route path="/confidentialite" component={NotFound} />
+      <Route path="/mentions-legales" component={MentionsLegales} />
+      <Route path="/cgu" component={CGU} />
+      <Route path="/confidentialite" component={Confidentialite} />
       <Route path={AUTH_CONFIG.LOGIN_PATH}>
         {user ? <Redirect to={AUTH_CONFIG.REDIRECT_PATH} /> : <AuthPage />}
       </Route>
