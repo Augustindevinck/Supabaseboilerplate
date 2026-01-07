@@ -13,10 +13,11 @@ SaaSify is a high-performance, minimalist SaaS boilerplate designed for Replit, 
 
 ## Database Exclusivity
 
-- **Database**: PostgreSQL managed exclusively by **Supabase**.
+- **Database**: PostgreSQL managed exclusivement by **Supabase**.
 - **Development Database**: The Replit development database is disabled and MUST NOT be used.
 - **ORM**: Drizzle ORM is used ONLY for type safety and schema definitions. No migrations or local DB connections.
 - **Security**: Row Level Security (RLS) is managed on Supabase.
+- **Architecture Note**: The backend (Express) is a lightweight shell. All CRUD operations on profiles and business logic that can be handled via RLS and Supabase SDK MUST stay on the frontend.
 
 ## System Architecture
 
