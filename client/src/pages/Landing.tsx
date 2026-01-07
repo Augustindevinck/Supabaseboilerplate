@@ -289,7 +289,7 @@ export default function Landing() {
             </nav>
 
             <p className="text-sm text-muted-foreground">
-              © 2024 SaaSify. Tous droits réservés.
+              © 2026 SaaSify. Tous droits réservés.
             </p>
           </div>
         </div>
