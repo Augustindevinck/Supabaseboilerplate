@@ -20,14 +20,22 @@ export function TermsGuard() {
 
   const handleAccept = async () => {
     try {
-      if (!user) return;
+      if (!user?.id) {
+        console.error("No user ID available for terms acceptance");
+        return;
+      }
+      
+      console.log("Updating terms acceptance for user:", user.id);
       
       const { error } = await supabase
         .from("profiles")
         .update({ has_accepted_terms: true })
         .eq("id", user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw error;
+      }
       
       toast({
         title: "Merci !",
@@ -36,12 +44,13 @@ export function TermsGuard() {
       setIsOpen(false);
       
       // Invalider le cache pour forcer useAuth à recharger le profil
-      queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
-    } catch (error) {
+      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+    } catch (error: any) {
+      console.error("Final error in handleAccept:", error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Impossible de mettre à jour vos préférences.",
+        description: error.message || "Impossible de mettre à jour vos préférences.",
       });
     }
   };

@@ -59,7 +59,8 @@ END $$;
 
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+-- IMPORTANT: Ensure users can update their own profile, especially the has_accepted_terms field
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 CREATE POLICY "Admins can perform all actions" ON public.profiles FOR ALL USING (public.is_admin());
 
 -- 7. AUTOMATION: HANDLER FOR NEW USERS
