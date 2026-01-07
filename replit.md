@@ -6,10 +6,17 @@ SaaSify is a high-performance, minimalist SaaS boilerplate designed for Replit, 
 
 ## Core Principles
 
-1.  **Supabase Everywhere**: No local database (PostgreSQL de Replit) or alternative providers. All data persistence and auth flows go through Supabase. L'utilisation de la base de données de développement Replit est strictement interdite.
+1.  **Supabase Everywhere**: No local database (PostgreSQL de Replit) or alternative providers. All data persistence and auth flows go through Supabase. L'utilisation de la base de données de développement Replit est strictement interdite. Toutes les opérations de données doivent être effectuées via le client Supabase dans le frontend.
 2.  **Clean Architecture**: Separation of concerns using custom hooks (`use-auth`, `use-supabase`).
 3.  **Modern UI**: Built with React, Tailwind CSS, shadcn/ui, and Framer Motion.
 4.  **Admin Ready**: Integrated role-based access control (RBAC) with a dedicated admin portal.
+
+## Database Exclusivity
+
+- **Database**: PostgreSQL managed exclusively by **Supabase**.
+- **Development Database**: The Replit development database is disabled and MUST NOT be used.
+- **ORM**: Drizzle ORM is used ONLY for type safety and schema definitions. No migrations or local DB connections.
+- **Security**: Row Level Security (RLS) is managed on Supabase.
 
 ## System Architecture
 
