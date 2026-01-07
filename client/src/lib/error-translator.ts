@@ -1,0 +1,73 @@
+export function translateSupabaseError(error: any): { title: string; description: string } {
+  const code = error?.code || error?.message;
+  
+  const errorMap: Record<string, { title: string; description: string }> = {
+    "Invalid login credentials": {
+      title: "Identifiants invalides",
+      description: "L'email ou le mot de passe est incorrect. Veuillez réessayer."
+    },
+    "User already registered": {
+      title: "Compte existant",
+      description: "Un utilisateur est déjà inscrit avec cette adresse email."
+    },
+    "Password should be at least 6 characters": {
+      title: "Mot de passe trop court",
+      description: "Le mot de passe doit contenir au moins 6 caractères."
+    },
+    "Email not confirmed": {
+      title: "Email non confirmé",
+      description: "Veuillez vérifier votre boîte de réception et confirmer votre email."
+    },
+    "Network request failed": {
+      title: "Erreur réseau",
+      description: "Impossible de contacter le serveur. Vérifiez votre connexion internet."
+    },
+    "Too many requests": {
+      title: "Trop de tentatives",
+      description: "Veuillez patienter un moment avant de réessayer."
+    },
+    "Signup disabled": {
+      title: "Inscriptions fermées",
+      description: "Les nouvelles inscriptions sont temporairement désactivées."
+    },
+    "Rate limit exceeded": {
+      title: "Limite atteinte",
+      description: "Vous avez effectué trop de tentatives. Veuillez réessayer plus tard."
+    },
+    "User not found": {
+      title: "Utilisateur introuvable",
+      description: "Aucun compte n'est associé à cette adresse email."
+    },
+    "Invalid email": {
+      title: "Email invalide",
+      description: "Le format de l'adresse email n'est pas correct."
+    },
+    "Database error saving next challenge": {
+      title: "Erreur de base de données",
+      description: "Un problème est survenu lors de l'enregistrement de vos données. Veuillez réessayer."
+    },
+    "anonymous_provider_disabled": {
+      title: "Connexion anonyme désactivée",
+      description: "Les connexions anonymes ne sont pas autorisées sur cette application."
+    }
+  };
+
+  // Check for specific Supabase error codes if available
+  if (error?.status === 429) {
+    return errorMap["Too many requests"];
+  }
+
+  // Search in our map
+  const message = error?.message || "";
+  for (const key in errorMap) {
+    if (message.includes(key) || error?.code === key) {
+      return errorMap[key];
+    }
+  }
+
+  // Default error
+  return {
+    title: "Une erreur est survenue",
+    description: message || "Une erreur inattendue s'est produite. Veuillez contacter le support si le problème persiste."
+  };
+}

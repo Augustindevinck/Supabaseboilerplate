@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
+import { translateSupabaseError } from "@/lib/error-translator";
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
@@ -75,10 +76,11 @@ export default function AuthPage() {
         setLocation("/login");
       }
     } catch (error: any) {
+      const translated = translateSupabaseError(error);
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: error.message,
+        title: translated.title,
+        description: translated.description,
       });
     } finally {
       setIsLoading(false);
@@ -105,10 +107,11 @@ export default function AuthPage() {
       });
       if (error) throw error;
     } catch (error: any) {
+      const translated = translateSupabaseError(error);
       toast({
         variant: "destructive",
-        title: "Erreur",
-        description: error.message,
+        title: translated.title,
+        description: translated.description,
       });
       setIsLoading(false);
     }
