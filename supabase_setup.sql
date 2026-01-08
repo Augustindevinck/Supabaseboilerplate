@@ -1,12 +1,8 @@
 -- =========================================================================================
--- SUPABASE SENIOR BOILERPLATE SETUP
--- This script sets up a secure, robust profile system for a SaaS application.
+-- SUPABASE SENIOR BOILERPLATE SETUP (ROBUST EDITION)
 -- =========================================================================================
 
--- 1. CLEANUP (Optionnel mais sécurisé)
--- On ne supprime pas la table pour éviter de perdre des données, on l'adapte.
-
--- 2. SCHEMA DEFINITION
+-- 1. SCHEMA DEFINITION
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL PRIMARY KEY,
     email TEXT,
@@ -25,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     CONSTRAINT profiles_role_check CHECK (role IN ('user', 'admin'))
 );
 
--- S'assurer que les colonnes existent si la table a été créée sans elles
+-- Assurer la présence des colonnes même si la table existe déjà
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='profiles' AND COLUMN_NAME='role') THEN
@@ -34,44 +30,39 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='profiles' AND COLUMN_NAME='has_accepted_terms') THEN
         ALTER TABLE public.profiles ADD COLUMN has_accepted_terms BOOLEAN DEFAULT FALSE NOT NULL;
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='profiles' AND COLUMN_NAME='is_subscriber') THEN
+        ALTER TABLE public.profiles ADD COLUMN is_subscriber BOOLEAN DEFAULT FALSE NOT NULL;
+    END IF;
 END $$;
 
--- 3. PERFORMANCE INDEXES
-CREATE INDEX IF NOT EXISTS profiles_role_idx ON public.profiles(role);
-CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles(email);
-
--- 4. ROW LEVEL SECURITY (RLS)
+-- 2. ROW LEVEL SECURITY (RLS) - DÉSACTIVER PUIS RÉACTIVER POUR NETTOYER
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 5. HELPER FUNCTION TO CHECK ADMIN ROLE
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN (
-    SELECT role = 'admin'
-    FROM public.profiles
-    WHERE id = auth.uid()
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
--- 6. POLICIES
+-- Nettoyage des anciennes politiques
 DO $$ 
 BEGIN
     DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
     DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
     DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
     DROP POLICY IF EXISTS "Admins can perform all actions" ON public.profiles;
+    DROP POLICY IF EXISTS "Enable read access for all users" ON public.profiles;
+    DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON public.profiles;
+    DROP POLICY IF EXISTS "Enable update for users based on id" ON public.profiles;
 EXCEPTION
     WHEN undefined_object THEN NULL;
 END $$;
 
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-CREATE POLICY "Admins can perform all actions" ON public.profiles FOR ALL USING (public.is_admin());
+-- NOUVELLES POLITIQUES ROBUSTES
+-- Tout le monde peut voir les profils (nécessaire pour certaines fonctions)
+CREATE POLICY "Enable read access for all users" ON public.profiles FOR SELECT USING (true);
 
--- 7. AUTOMATION: HANDLER FOR NEW USERS
+-- Seul l'utilisateur lui-même peut insérer son profil (via le trigger ou direct)
+CREATE POLICY "Enable insert for authenticated users only" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Seul l'utilisateur peut modifier son propre profil
+CREATE POLICY "Enable update for users based on id" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- 3. AUTOMATION: HANDLER FOR NEW USERS
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -81,29 +72,16 @@ BEGIN
     extracted_name := COALESCE(
         NEW.raw_user_meta_data->>'full_name',
         NEW.raw_user_meta_data->>'name',
-        NULLIF(TRIM(
-            COALESCE(NEW.raw_user_meta_data->>'given_name', '') || ' ' || 
-            COALESCE(NEW.raw_user_meta_data->>'family_name', '')
-        ), ''),
-        NEW.raw_user_meta_data->>'user_name',
-        NEW.raw_user_meta_data->>'preferred_username',
         split_part(NEW.email, '@', 1)
     );
 
     extracted_avatar := COALESCE(
         NEW.raw_user_meta_data->>'avatar_url',
-        NEW.raw_user_meta_data->>'picture',
-        NEW.raw_user_meta_data->>'photo_url'
+        NEW.raw_user_meta_data->>'picture'
     );
 
-    INSERT INTO public.profiles (
-        id, 
-        email, 
-        full_name, 
-        avatar_url, 
-        role, 
-        has_accepted_terms
-    )
+    -- Utilisation de INSERT ... ON CONFLICT pour éviter les erreurs si le profil existe déjà
+    INSERT INTO public.profiles (id, email, full_name, avatar_url, role, has_accepted_terms)
     VALUES (
         NEW.id, 
         NEW.email, 
@@ -115,27 +93,20 @@ BEGIN
     ON CONFLICT (id) DO UPDATE SET
         email = EXCLUDED.email,
         full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), profiles.full_name),
-        avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url);
+        avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url),
+        updated_at = NOW();
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 8. TRIGGER REGISTRATION
+-- 4. TRIGGER REGISTRATION
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+CREATE TRIGGER on_auth_user_created 
+    AFTER INSERT ON auth.users 
+    FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 9. UPDATED_AT TIMESTAMP
-CREATE OR REPLACE FUNCTION public.handle_updated_at() RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS on_profiles_updated ON public.profiles;
-CREATE TRIGGER on_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
-
--- 10. PERMISSIONS
+-- 5. PERMISSIONS
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
+GRANT ALL ON public.profiles TO service_role;

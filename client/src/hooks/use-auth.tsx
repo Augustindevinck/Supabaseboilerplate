@@ -78,7 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.error("Error fetching profile:", error);
+        console.warn("Profile not found in database, might be still creating...", error);
+        // On ne retourne pas une erreur bloquante tout de suite, on laisse une chance au trigger
         return { 
           id: user.id, 
           email: user.email ?? null, 
