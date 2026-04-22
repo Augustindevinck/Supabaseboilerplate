@@ -8,22 +8,33 @@ import { useAuth } from "@/hooks/use-auth";
 
 function FloatingHeader() {
   const { user } = useAuth();
-  
+
+  const handleHeroScroll = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    const heroSection = document.getElementById("hero");
+    heroSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.history.replaceState(null, "", "#hero");
+  };
+
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-      <motion.header 
+      <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className="bg-background/80 backdrop-blur-xl border border-border/50 pointer-events-auto flex items-center justify-between px-6 py-3 rounded-full w-full max-w-5xl shadow-xl shadow-black/5"
       >
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2 pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity">
+          <a
+            href="#hero"
+            onClick={handleHeroScroll}
+            className="flex items-center gap-2 pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <div className="bg-primary/10 p-1.5 rounded-lg">
               <div className="bg-primary w-4 h-4 rounded-full" />
             </div>
             <span className="font-display font-bold text-xl tracking-tight">SaaSify</span>
-          </Link>
+          </a>
         </div>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -67,12 +78,21 @@ export default function Landing() {
     visible: { y: 0, opacity: 1 }
   };
 
+  const sectionVariants = {
+    hidden: { y: 40, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <FloatingHeader />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-32">
+      <section id="hero" className="relative min-h-screen flex items-center justify-center px-4 pt-32">
         {/* Abstract Background Shapes */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-3xl -z-10" />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-3xl -z-10" />
@@ -112,7 +132,14 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-24 md:py-32 px-4 bg-secondary/30">
+      <motion.section
+        id="features"
+        className="py-24 md:py-32 px-4 bg-secondary/30"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <h2 className="font-display text-3xl md:text-4xl font-bold">Tout ce dont vous avez besoin</h2>
@@ -149,10 +176,17 @@ export default function Landing() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 md:py-32 px-4 relative overflow-hidden">
+      <motion.section
+        id="pricing"
+        className="py-24 md:py-32 px-4 relative overflow-hidden"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10" />
         
         <div className="max-w-7xl mx-auto">
@@ -173,7 +207,8 @@ export default function Landing() {
                   "Jusqu'à 3 projets",
                   "Analyses de base",
                   "Support communautaire",
-                  "Déploiement illimité"
+                  "Déploiement illimité",
+                  "Mises à jour mensuelles"
                 ],
                 cta: "Commencer gratuitement",
                 recommended: false
@@ -196,8 +231,8 @@ export default function Landing() {
               <div 
                 key={i} 
                 className={`relative p-8 rounded-3xl border transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
-                  plan.recommended 
-                    ? "bg-card border-primary shadow-xl shadow-primary/5" 
+                  plan.recommended
+                    ? "bg-card border-primary shadow-xl shadow-primary/5 md:scale-[1.03]"
                     : "bg-background border-border/50"
                 }`}
               >
@@ -216,7 +251,7 @@ export default function Landing() {
                   <p className="text-muted-foreground text-sm leading-relaxed">{plan.description}</p>
                 </div>
 
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-4 mb-8 min-h-[220px]">
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-center gap-3 text-sm">
                       <CheckCircle2 className={`w-5 h-5 shrink-0 ${plan.recommended ? "text-primary" : "text-muted-foreground/50"}`} />
@@ -241,10 +276,17 @@ export default function Landing() {
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 md:py-32 px-4">
+      <motion.section
+        id="faq"
+        className="py-24 md:py-32 px-4"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16 space-y-4">
             <h2 className="font-display text-3xl md:text-4xl font-bold">Questions Fréquentes</h2>
@@ -269,7 +311,7 @@ export default function Landing() {
             ))}
           </Accordion>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="py-12 border-t border-border bg-card">
