@@ -33,7 +33,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <TermsGuard />
       <AppSidebar />
-      <SidebarInset className="min-w-0 overflow-hidden bg-card shadow-md">
+      <SidebarInset className="min-w-0 overflow-hidden border bg-card shadow-md">
         <header className="flex h-16 items-center gap-4 bg-card px-6 backdrop-blur transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <SidebarTrigger />
           <div className="flex-1 min-w-0">
@@ -41,7 +41,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-4 pt-6 md:p-8">
-          <div className="mx-auto max-w-7xl bg-card animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mx-auto max-w-7xl bg-card p-4 md:p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </div>
