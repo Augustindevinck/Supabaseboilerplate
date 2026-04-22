@@ -30,15 +30,22 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem 
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TermsGuard } from "./TermsGuard";
 
 function AppSidebar() {
   const [location] = useLocation();
-  const { profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, signOut } = useAuth();
   const { state, isMobile } = useSidebar();
 
   const isCollapsed = state === "collapsed" && !isMobile;
+  const profileAvatarUrl = (profile as any)?.avatar_url as string | undefined;
+  const avatarUrl =
+    profileAvatarUrl ||
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    user?.user_metadata?.photoURL ||
+    null;
 
   const isActive = (path: string) => location === path;
 
@@ -120,8 +127,9 @@ function AppSidebar() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-center cursor-pointer"
             >
-              <Avatar className="h-8 w-8 rounded-lg shrink-0">
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+              <Avatar className="h-8 w-8 shrink-0 rounded-full">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt={profile?.email || "Avatar utilisateur"} /> : null}
+                <AvatarFallback className="rounded-full bg-primary/10 text-primary">
                   {profile?.email?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -168,6 +176,17 @@ function AppSidebar() {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { isLoading } = useAuth();
+  const [location] = useLocation();
+
+  const pageTitleByPath: Record<string, string> = {
+    "/app": "App",
+    "/settings": "Paramètres",
+    "/billing": "Facturation",
+    "/admin": "Aperçu Admin",
+    "/admin/users": "Gestion Utilisateurs",
+  };
+
+  const pageTitle = pageTitleByPath[location] ?? "Application";
 
   if (isLoading) {
     return (
@@ -188,8 +207,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-hidden flex flex-col min-w-0 transition-[margin]">
           <header className="flex h-16 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <SidebarTrigger />
-            <div className="flex-1">
-              {/* Breadcrumbs could go here */}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg md:text-xl font-semibold truncate">{pageTitle}</h1>
             </div>
           </header>
           <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-6">

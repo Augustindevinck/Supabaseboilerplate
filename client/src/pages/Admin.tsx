@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search, Filter } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +19,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@shared/schema";
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   XAxis,
   YAxis,
@@ -40,17 +40,23 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
-/**
- * Hook for fetching all profiles (Admin only)
- */
-export function useAllProfiles() {
+function mapProfileDates(profile: any): Profile {
+  return {
+    ...profile,
+    createdAt: profile.created_at ?? profile.createdAt,
+    updatedAt: profile.updated_at ?? profile.updatedAt,
+  } as Profile;
+}
+
+export function useAllProfiles(options?: { enabled?: boolean }) {
   const { isAdmin } = useAuth();
+  const enabled = options?.enabled ?? true;
 
   return useQuery<Profile[]>({
-    queryKey: ["profiles"],
+    queryKey: ["profiles", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -58,16 +64,72 @@ export function useAllProfiles() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      
-      // Ensure the return data matches the expected Profile type
-      // specifically handling the camelCase vs snake_case mapping from Supabase
-      return (data || []).map(p => ({
-        ...p,
-        createdAt: p.created_at,
-        updatedAt: p.updated_at
-      })) as Profile[];
+      return (data || []).map(mapProfileDates);
+    },
+    enabled: isAdmin && enabled,
+  });
+}
+
+type PaginatedProfilesResponse = {
+  profiles: Profile[];
+  total: number;
+  totalPages: number;
+  page: number;
+  pageSize: number;
+};
+
+type UsePaginatedProfilesParams = {
+  page: number;
+  pageSize: number;
+  searchQuery: string;
+  roleFilter: string;
+};
+
+function usePaginatedProfiles({
+  page,
+  pageSize,
+  searchQuery,
+  roleFilter,
+}: UsePaginatedProfilesParams) {
+  const { isAdmin } = useAuth();
+
+  return useQuery<PaginatedProfilesResponse>({
+    queryKey: ["profiles", "paginated", page, pageSize, searchQuery, roleFilter],
+    queryFn: async () => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      const normalizedSearch = searchQuery.trim().replace(/[^\w@.\-\s]/g, "");
+
+      let query = supabase
+        .from("profiles")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
+
+      if (roleFilter !== "all") {
+        query = query.eq("role", roleFilter);
+      }
+
+      if (normalizedSearch) {
+        query = query.or(`email.ilike.%${normalizedSearch}%,full_name.ilike.%${normalizedSearch}%`);
+      }
+
+      const { data, error, count } = await query.range(from, to);
+
+      if (error) throw error;
+
+      const profiles = (data || []).map(mapProfileDates);
+      const total = count ?? 0;
+
+      return {
+        profiles,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+        page,
+        pageSize,
+      };
     },
     enabled: isAdmin,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -78,11 +140,11 @@ export default function AdminPage() {
   const { isAdmin } = useAuth();
   const [, setLocation] = useLocation();
   const [location] = useLocation();
-  const { data: profiles } = useAllProfiles();
+  const isUsersPage = location === "/admin/users";
+
+  const { data: profiles } = useAllProfiles({ enabled: !isUsersPage });
   const { data: metrics, isLoading: isLoadingMetrics } = useAdminMetrics();
   const { data: growthData, isLoading: isLoadingGrowth } = useUserGrowth();
-  
-  const isUsersPage = location === "/admin/users";
 
   const isLoading = isLoadingMetrics || isLoadingGrowth;
 
@@ -119,24 +181,50 @@ export default function AdminPage() {
  * Dedicated User Management Page
  */
 function UsersManagementPage() {
-  const { data: profiles, isLoading } = useAllProfiles();
   const { updateProfile, deleteProfile } = useProfile();
   const { toast } = useToast();
-  
+
+  const pageSize = 25;
+  const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
-  const filteredProfiles = useMemo(() => {
-    if (!profiles) return [];
-    const query = searchQuery.toLowerCase().trim();
-    return profiles.filter((p: Profile) => {
-      const matchesRole = roleFilter === "all" || p.role === roleFilter;
-      const matchesSearch = !query || 
-        p.email?.toLowerCase().includes(query) || 
-        p.full_name?.toLowerCase().includes(query);
-      return matchesRole && matchesSearch;
-    });
-  }, [profiles, searchQuery, roleFilter]);
+  const { data, isLoading, isFetching, isPlaceholderData } = usePaginatedProfiles({
+    page,
+    pageSize,
+    searchQuery,
+    roleFilter,
+  });
+
+  const profiles = data?.profiles || [];
+  const total = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+      setPage(1);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [roleFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    if (!isFetching && !isPlaceholderData && profiles.length === 0 && page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  }, [isFetching, isPlaceholderData, page, profiles.length]);
 
   const handleToggleSubscriber = async (id: string, current: boolean) => {
     try {
@@ -151,7 +239,7 @@ function UsersManagementPage() {
     try {
       const newRole = currentRole === "admin" ? "user" : "admin";
       await updateProfile({ id, updates: { role: newRole as "user" | "admin" } });
-      toast({ title: "Rôle mis à jour", description: `L'utilisateur est maintenant ${newRole === 'admin' ? 'Administrateur' : 'Utilisateur'}.` });
+      toast({ title: "Rôle mis à jour", description: `L'utilisateur est maintenant ${newRole === "admin" ? "Administrateur" : "Utilisateur"}.` });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Échec de la mise à jour", description: error.message });
     }
@@ -181,15 +269,23 @@ function UsersManagementPage() {
           <Skeleton className="h-64 w-full" />
         </div>
       ) : (
-        <UserManagement 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+        <UserManagement
+          searchQuery={searchInput}
+          setSearchQuery={setSearchInput}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
-          profiles={filteredProfiles}
+          profiles={profiles}
           onToggleRole={handleToggleRole}
           onToggleSubscriber={handleToggleSubscriber}
           onDelete={handleDeleteUser}
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          totalPages={totalPages}
+          isFetching={isFetching}
+          isPlaceholderData={isPlaceholderData}
+          onPreviousPage={() => setPage((prev) => Math.max(1, prev - 1))}
+          onNextPage={() => setPage((prev) => Math.min(totalPages, prev + 1))}
         />
       )}
     </div>
@@ -302,7 +398,46 @@ function GrowthChart({ data }: any) {
   );
 }
 
-function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter, profiles, onToggleRole, onToggleSubscriber, onDelete }: any) {
+type UserManagementProps = {
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  roleFilter: string;
+  setRoleFilter: (value: string) => void;
+  profiles: Profile[];
+  onToggleRole: (id: string, currentRole: string) => void;
+  onToggleSubscriber: (id: string, current: boolean) => void;
+  onDelete: (id: string) => void;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  isFetching: boolean;
+  isPlaceholderData: boolean;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+};
+
+function UserManagement({
+  searchQuery,
+  setSearchQuery,
+  roleFilter,
+  setRoleFilter,
+  profiles,
+  onToggleRole,
+  onToggleSubscriber,
+  onDelete,
+  page,
+  pageSize,
+  total,
+  totalPages,
+  isFetching,
+  isPlaceholderData,
+  onPreviousPage,
+  onNextPage,
+}: UserManagementProps) {
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = total === 0 ? 0 : Math.min(page * pageSize, total);
+
   return (
     <Card className="border-border/60">
       <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -313,8 +448,8 @@ function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Rechercher nom ou email..." 
+            <Input
+              placeholder="Rechercher nom ou email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9"
@@ -359,22 +494,22 @@ function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter
                       </div>
                     </TableCell>
                     <TableCell>
-                      <button 
+                      <button
                         onClick={() => onToggleRole(profile.id, profile.role)}
                         className="transition-transform active:scale-95"
                       >
-                        <Badge 
-                          variant={profile.role === 'admin' ? "default" : "secondary"}
+                        <Badge
+                          variant={profile.role === "admin" ? "default" : "secondary"}
                           className="cursor-pointer hover:opacity-80 transition-opacity"
                         >
-                          {profile.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
+                          {profile.role === "admin" ? "Administrateur" : "Utilisateur"}
                         </Badge>
                       </button>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Switch 
-                          checked={profile.is_subscriber} 
+                        <Switch
+                          checked={profile.is_subscriber}
                           onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
                         />
                         {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
@@ -406,6 +541,25 @@ function UserManagement({ searchQuery, setSearchQuery, roleFilter, setRoleFilter
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {isFetching ? "Mise à jour..." : `Affichage ${start}-${end} sur ${total}`}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={onPreviousPage} disabled={page <= 1 || isFetching}>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Précédent
+            </Button>
+            <span className="text-sm text-muted-foreground min-w-[90px] text-center">
+              Page {page}/{totalPages}
+            </span>
+            <Button variant="outline" size="sm" onClick={onNextPage} disabled={page >= totalPages || isFetching || isPlaceholderData}>
+              Suivant
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

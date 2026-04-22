@@ -55,19 +55,31 @@ export default function AuthPage() {
         if (error) throw error;
         toast({ title: "Bon retour !", description: "Connexion réussie." });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            has_accepted_terms: true,
+          }),
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({ message: "Registration failed" }));
+          throw new Error(payload.message || "Registration failed");
+        }
+
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/app`,
-            data: {
-              has_accepted_terms: true
-            }
-          }
         });
+
         if (error) throw error;
-        toast({ title: "Compte créé", description: "Veuillez vérifier vos emails pour confirmer votre inscription." });
-        setLocation("/login");
+
+        toast({ title: "Compte créé", description: "Votre compte a été créé avec succès." });
       }
     } catch (error: any) {
       const translated = translateSupabaseError(error);
