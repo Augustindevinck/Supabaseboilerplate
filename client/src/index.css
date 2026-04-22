@@ -9,7 +9,7 @@
   --font-sans: 'DM Sans', sans-serif;
   --font-display: 'Outfit', sans-serif;
 
-  --background: 210 20% 98%;
+  --background: 210 28% 95%;
   --foreground: 222 47% 11%;
 
   --card: 0 0% 100%;
@@ -39,8 +39,8 @@
 
   --radius: 0.75rem;
   
-  --sidebar: 210 20% 98%;
-  --sidebar-background: 210 20% 98%;
+  --sidebar: 210 28% 95%;
+  --sidebar-background: 210 28% 95%;
   --sidebar-foreground: 240 5.3% 26.1%;
   --sidebar-primary: 240 5.9% 10%;
   --sidebar-primary-foreground: 0 0% 98%;
