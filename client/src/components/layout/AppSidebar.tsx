@@ -60,12 +60,12 @@ export function AppSidebar() {
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="h-16 flex items-center justify-center overflow-hidden transition-[width,height] ease-linear group-data-[collapsible=icon]:h-12">
-        <Link href="/app" className="flex h-full w-full items-center justify-center gap-2 px-2 pt-1 transition-opacity hover:opacity-80">
+        <Link href="/app" className="flex h-full w-full items-center justify-center gap-2 px-2 pt-1 text-sidebar-foreground">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             S
           </div>
           {!isCollapsed && (
-            <span className="font-display font-bold text-lg truncate animate-in fade-in duration-300">
+            <span className="font-display font-bold text-lg text-sidebar-foreground truncate animate-in fade-in duration-300">
               SaaSify
             </span>
           )}
