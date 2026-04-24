@@ -43,13 +43,24 @@ export function AppSidebar() {
     user?.user_metadata?.picture ||
     user?.user_metadata?.photoURL ||
     null;
+  const displayName =
+    profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || profile?.email || user?.email || "Utilisateur";
+  const displayEmail = profile?.email || user?.email || "";
+  const avatarInitials =
+    (displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part: string) => part[0])
+      .join("") || displayEmail.slice(0, 2) || "U"
+    ).toUpperCase();
 
   const isActive = (path: string) => location === path;
 
   return (
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader className="h-16 flex items-center justify-center overflow-hidden transition-[width,height] ease-linear group-data-[collapsible=icon]:h-12">
-        <Link href="/app" className="flex h-full w-full items-center justify-center gap-2 px-2 transition-opacity hover:opacity-80">
+        <Link href="/app" className="flex h-full w-full items-center justify-center gap-2 px-2 pt-1 transition-opacity hover:opacity-80">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
             S
           </div>
@@ -105,22 +116,22 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/20 p-2 overflow-hidden">
+      <SidebarFooter className="border-t border-border/20 p-2.5 overflow-hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-center cursor-pointer"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-start gap-3 px-2.5 cursor-pointer"
             >
-              <Avatar className="h-8 w-8 shrink-0 rounded-full">
+              <Avatar className="h-9 w-9 shrink-0 rounded-full">
                 {avatarUrl ? <AvatarImage src={avatarUrl} alt={profile?.email || "Avatar utilisateur"} /> : null}
                 <AvatarFallback className="rounded-full bg-primary/10 text-primary">
-                  {profile?.email?.substring(0, 2).toUpperCase()}
+                  {avatarInitials}
                 </AvatarFallback>
               </Avatar>
               {!isCollapsed && (
                 <>
-                  <div className="grid flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
+                  <div className="grid min-w-0 flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
                     <span className="truncate font-semibold">{profile?.role === "admin" ? "Administrateur" : "Utilisateur"}</span>
                     <span className="truncate text-xs">{profile?.email}</span>
                   </div>
@@ -130,26 +141,46 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg border-sidebar-border bg-sidebar p-1 text-sidebar-foreground"
             side="bottom"
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex w-full items-center cursor-pointer">
-                <SettingsIcon className="mr-2 h-4 w-4" />
+            <div className="mb-1 flex items-center gap-2.5 px-2.5 py-2">
+              <Avatar className="h-9 w-9 shrink-0 rounded-full">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayEmail || "Avatar utilisateur"} /> : null}
+                <AvatarFallback className="rounded-full bg-primary/15 text-primary">{avatarInitials}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1 leading-tight">
+                <p className="truncate text-sm font-semibold">{displayName}</p>
+                <p className="truncate text-xs text-sidebar-foreground/80">{displayEmail}</p>
+              </div>
+            </div>
+            <div className="my-1 h-px bg-sidebar-border/70" />
+            <DropdownMenuItem
+              asChild
+              className="h-9 cursor-pointer rounded-md px-2 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+            >
+              <Link href="/settings" className="flex w-full items-center gap-2">
+                <SettingsIcon className="h-4 w-4 shrink-0" />
                 <span>Paramètres</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/billing" className="flex w-full items-center cursor-pointer">
-                <CreditCard className="mr-2 h-4 w-4" />
+            <DropdownMenuItem
+              asChild
+              className="h-9 cursor-pointer rounded-md px-2 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+            >
+              <Link href="/billing" className="flex w-full items-center gap-2">
+                <CreditCard className="h-4 w-4 shrink-0" />
                 <span>Facturation</span>
               </Link>
             </DropdownMenuItem>
-            <div className="my-1 h-px bg-muted" />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => signOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
+            <div className="my-1 h-px bg-sidebar-border/70" />
+            <DropdownMenuItem
+              className="h-9 cursor-pointer rounded-md px-2 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+              onClick={() => signOut()}
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
               <span>Déconnexion</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

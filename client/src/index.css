@@ -41,13 +41,13 @@
   
   --sidebar: 210 28% 95%;
   --sidebar-background: 210 28% 95%;
-  --sidebar-foreground: 240 5.3% 26.1%;
-  --sidebar-primary: 240 5.9% 10%;
+  --sidebar-foreground: 240 8% 18%;
+  --sidebar-primary: 246 83% 60%;
   --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 240 4.8% 95.9%;
-  --sidebar-accent-foreground: 240 5.9% 10%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 217.2 91.2% 59.8%;
+  --sidebar-accent: 246 40% 90%;
+  --sidebar-accent-foreground: 240 9% 12%;
+  --sidebar-border: 220 16% 85%;
+  --sidebar-ring: 246 83% 60%;
 }
 
 @layer base {
