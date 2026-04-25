@@ -439,130 +439,123 @@ function UserManagement({
   const end = total === 0 ? 0 : Math.min(page * pageSize, total);
 
   return (
-    <Card className="border-border/60">
-      <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <CardTitle>Gestion des Utilisateurs</CardTitle>
-          <CardDescription>Liste de tous les utilisateurs inscrits dans le système.</CardDescription>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher nom ou email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9"
+          />
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher nom ou email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9"
-            />
-          </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-full sm:w-[150px] h-9">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Tous les rôles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les rôles</SelectItem>
-              <SelectItem value="user">Utilisateurs</SelectItem>
-              <SelectItem value="admin">Administrateurs</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead>Rôle</TableHead>
-                <TableHead>Abonné</TableHead>
-                <TableHead>Dernière activité</TableHead>
-                <TableHead>Inscription</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.length > 0 ? (
-                profiles.map((profile: Profile) => (
-                  <TableRow key={profile.id}>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">{profile.full_name || "N/A"}</span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Mail className="h-3 w-3" /> {profile.email}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => onToggleRole(profile.id, profile.role)}
-                        className="transition-transform active:scale-95"
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-full sm:w-[150px] h-9">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Tous les rôles" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les rôles</SelectItem>
+            <SelectItem value="user">Utilisateurs</SelectItem>
+            <SelectItem value="admin">Administrateurs</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Utilisateur</TableHead>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Abonné</TableHead>
+              <TableHead>Dernière activité</TableHead>
+              <TableHead>Inscription</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {profiles.length > 0 ? (
+              profiles.map((profile: Profile) => (
+                <TableRow key={profile.id}>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{profile.full_name || "N/A"}</span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> {profile.email}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      onClick={() => onToggleRole(profile.id, profile.role)}
+                      className="transition-transform active:scale-95"
+                    >
+                      <Badge
+                        variant={profile.role === "admin" ? "default" : "secondary"}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
                       >
-                        <Badge
-                          variant={profile.role === "admin" ? "default" : "secondary"}
-                          className="cursor-pointer hover:opacity-80 transition-opacity"
-                        >
-                          {profile.role === "admin" ? "Administrateur" : "Utilisateur"}
-                        </Badge>
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={profile.is_subscriber}
-                          onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                        />
-                        {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {profile.last_active_at ? format(new Date(profile.last_active_at), "d MMM, HH:mm") : "Jamais"}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{profile.createdAt ? format(new Date(profile.createdAt), "dd/MM/yyyy") : "N/A"}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                    Aucun utilisateur trouvé.
+                        {profile.role === "admin" ? "Administrateur" : "Utilisateur"}
+                      </Badge>
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={profile.is_subscriber}
+                        onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                      />
+                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {profile.last_active_at ? format(new Date(profile.last_active_at), "d MMM, HH:mm") : "Jamais"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{profile.createdAt ? format(new Date(profile.createdAt), "dd/MM/yyyy") : "N/A"}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
                   </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  Aucun utilisateur trouvé.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {isFetching ? "Mise à jour..." : `Affichage ${start}-${end} sur ${total}`}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onPreviousPage} disabled={page <= 1 || isFetching}>
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Précédent
-            </Button>
-            <span className="text-sm text-muted-foreground min-w-[90px] text-center">
-              Page {page}/{totalPages}
-            </span>
-            <Button variant="outline" size="sm" onClick={onNextPage} disabled={page >= totalPages || isFetching || isPlaceholderData}>
-              Suivant
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
+      <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {isFetching ? "Mise à jour..." : `Affichage ${start}-${end} sur ${total}`}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onPreviousPage} disabled={page <= 1 || isFetching}>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Précédent
+          </Button>
+          <span className="text-sm text-muted-foreground min-w-[90px] text-center">
+            Page {page}/{totalPages}
+          </span>
+          <Button variant="outline" size="sm" onClick={onNextPage} disabled={page >= totalPages || isFetching || isPlaceholderData}>
+            Suivant
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
