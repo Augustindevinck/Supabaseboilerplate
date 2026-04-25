@@ -40,7 +40,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <h1 className="text-lg md:text-xl font-semibold truncate">{pageTitle}</h1>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto px-3 md:px-4">
+        <div className="flex-1 overflow-y-auto px-4 md:px-5">
           <div className="w-full bg-card p-2 md:p-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
