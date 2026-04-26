@@ -33,7 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.access_token) {
+        const { data, error } = await supabase.auth.getUser(session.access_token);
+
+        if (error || !data.user) {
+          await supabase.auth.signOut({ scope: "local" });
+          setSession(null);
+          setUser(null);
+          setIsLoadingSession(false);
+          return;
+        }
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoadingSession(false);

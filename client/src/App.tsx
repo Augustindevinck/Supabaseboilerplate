@@ -68,7 +68,9 @@ function Router() {
       "/confidentialite": "Confidentialité",
     };
 
-    const pageTitle = titleByPath[location] ?? "SaaSify";
+    const dynamicTitle = location.startsWith("/admin/users/") ? "Détail Utilisateur" : undefined;
+    const pageTitle = dynamicTitle ?? titleByPath[location] ?? "SaaSify";
+
     document.title = `${pageTitle} | SaaSify`;
   }, [location]);
 
@@ -105,6 +107,9 @@ function Router() {
         <ProtectedRoute component={AdminPage} />
       </Route>
       <Route path="/admin/users">
+        <ProtectedRoute component={AdminPage} />
+      </Route>
+      <Route path="/admin/users/:id">
         <ProtectedRoute component={AdminPage} />
       </Route>
       

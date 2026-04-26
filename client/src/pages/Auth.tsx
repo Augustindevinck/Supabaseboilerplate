@@ -16,7 +16,9 @@ export default function AuthPage() {
   const [location, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTOS, setAcceptedTOS] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -47,6 +49,10 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
+      if (!isLogin && password !== confirmPassword) {
+        throw new Error("Les mots de passe ne correspondent pas.");
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -189,14 +195,47 @@ export default function AuthPage() {
                       <span className="font-medium">{strength.label}</span>
                     </div>
                     <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-300 ${strength.color}`} 
+                      <div
+                        className={`h-full transition-all duration-300 ${strength.color}`}
                         style={ { width: `${(strength.score / 5) * 100}%` } }
                       />
                     </div>
                   </div>
                 )}
               </div>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      className="h-11 pr-10"
+                      data-testid="input-confirm-password"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground no-default-hover-elevate no-default-active-elevate"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      data-testid="button-toggle-confirm-password"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {confirmPassword && confirmPassword !== password && (
+                    <p className="text-xs text-destructive">Les mots de passe ne correspondent pas.</p>
+                  )}
+                </div>
+              )}
               <Button 
                 type="submit" 
                 className="w-full h-11 text-base font-semibold shadow-lg shadow-primary/20" 

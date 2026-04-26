@@ -105,13 +105,76 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users 
     FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 10. PERMISSIONS
+-- 10. ADMIN SESSION RPCs (least privilege, no auth schema exposure)
+CREATE OR REPLACE FUNCTION public.admin_list_user_sessions(p_user_id UUID)
+RETURNS TABLE (
+    id UUID,
+    user_id UUID,
+    created_at TIMESTAMP WITH TIME ZONE,
+    not_after TIMESTAMP WITH TIME ZONE,
+    ip TEXT,
+    user_agent TEXT
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = pg_catalog, auth
+AS $$
+    SELECT s.id, s.user_id, s.created_at, s.not_after, s.ip::text, s.user_agent
+    FROM auth.sessions AS s
+    WHERE s.user_id = p_user_id
+    ORDER BY s.created_at DESC;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_revoke_user_session(p_user_id UUID, p_session_id UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, auth
+AS $$
+DECLARE
+    deleted_count INTEGER;
+BEGIN
+    DELETE FROM auth.sessions
+    WHERE id = p_session_id
+      AND user_id = p_user_id;
+
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_revoke_all_user_sessions(p_user_id UUID)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, auth
+AS $$
+DECLARE
+    deleted_count INTEGER;
+BEGIN
+    DELETE FROM auth.sessions
+    WHERE user_id = p_user_id;
+
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
+END;
+$$;
+
+-- 11. PERMISSIONS
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT SELECT ON public.profiles TO anon;
 GRANT ALL ON public.profiles TO service_role;
 
--- 11. ADMIN MANAGEMENT (Instruction pour l'utilisateur)
+REVOKE ALL ON FUNCTION public.admin_list_user_sessions(UUID) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_revoke_user_session(UUID, UUID) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.admin_revoke_all_user_sessions(UUID) FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.admin_list_user_sessions(UUID) TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_revoke_user_session(UUID, UUID) TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_revoke_all_user_sessions(UUID) TO service_role;
+
+-- 12. ADMIN MANAGEMENT (Instruction pour l'utilisateur)
 -- Pour promouvoir un utilisateur en administrateur, exécutez la commande suivante
 -- dans l'éditeur SQL de Supabase en remplaçant 'email@example.com' :
 -- UPDATE public.profiles SET role = 'admin' WHERE email = 'email@example.com';

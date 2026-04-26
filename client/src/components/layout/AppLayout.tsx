@@ -16,7 +16,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     "/admin/users": "Gestion Utilisateurs",
   };
 
-  const pageTitle = pageTitleByPath[location] ?? "Application";
+  const pageTitle = location.startsWith("/admin/users/")
+    ? "Détail Utilisateur"
+    : pageTitleByPath[location] ?? "Application";
 
   if (isLoading) {
     return (

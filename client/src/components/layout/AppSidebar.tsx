@@ -55,7 +55,13 @@ export function AppSidebar() {
       .join("") || displayEmail.slice(0, 2) || "U"
     ).toUpperCase();
 
-  const isActive = (path: string) => location === path;
+  const isActive = (path: string) => {
+    if (path === "/admin/users") {
+      return location === path || location.startsWith("/admin/users/");
+    }
+
+    return location === path;
+  };
 
   return (
     <Sidebar variant="inset" collapsible="icon">
