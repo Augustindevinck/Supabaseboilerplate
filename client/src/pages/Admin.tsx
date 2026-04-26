@@ -3,10 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, Crown, TrendingUp, BarChart3, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShieldCheck, Users, Mail, Clock, ShieldAlert, Trash2, TrendingUp, BarChart3, Search, Filter, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -40,6 +39,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
@@ -279,11 +286,10 @@ function UsersManagementPage() {
           onToggleSubscriber={handleToggleSubscriber}
           onDelete={handleDeleteUser}
           page={page}
-          pageSize={pageSize}
-          total={total}
           totalPages={totalPages}
           isFetching={isFetching}
           isPlaceholderData={isPlaceholderData}
+          onPageChange={setPage}
           onPreviousPage={() => setPage((prev) => Math.max(1, prev - 1))}
           onNextPage={() => setPage((prev) => Math.min(totalPages, prev + 1))}
         />
@@ -408,11 +414,10 @@ type UserManagementProps = {
   onToggleSubscriber: (id: string, current: boolean) => void;
   onDelete: (id: string) => void;
   page: number;
-  pageSize: number;
-  total: number;
   totalPages: number;
   isFetching: boolean;
   isPlaceholderData: boolean;
+  onPageChange: (page: number) => void;
   onPreviousPage: () => void;
   onNextPage: () => void;
 };
@@ -427,50 +432,54 @@ function UserManagement({
   onToggleSubscriber,
   onDelete,
   page,
-  pageSize,
-  total,
   totalPages,
   isFetching,
   isPlaceholderData,
+  onPageChange,
   onPreviousPage,
   onNextPage,
 }: UserManagementProps) {
-  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = total === 0 ? 0 : Math.min(page * pageSize, total);
+  const pageNumbers =
+    totalPages <= 3
+      ? Array.from({ length: totalPages }, (_, i) => i + 1)
+      : page === 1
+        ? [1, 2, 3]
+        : page === totalPages
+          ? [totalPages - 2, totalPages - 1, totalPages]
+          : [page - 1, page, page + 1];
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Rechercher nom ou email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
+            className="pl-9 h-10 w-full"
           />
         </div>
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-[150px] h-9">
-            <Filter className="mr-2 h-4 w-4" />
+          <SelectTrigger className="w-full sm:w-[200px] h-10 rounded-lg border-border/70 bg-background px-3 shadow-sm transition-colors hover:border-border">
+            <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
             <SelectValue placeholder="Tous les rôles" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les rôles</SelectItem>
-            <SelectItem value="user">Utilisateurs</SelectItem>
-            <SelectItem value="admin">Administrateurs</SelectItem>
+          <SelectContent align="end" className="min-w-[200px] rounded-lg border-border/70 p-1 shadow-lg">
+            <SelectItem value="all" className="rounded-md">Tous les rôles</SelectItem>
+            <SelectItem value="user" className="rounded-md">Utilisateurs</SelectItem>
+            <SelectItem value="admin" className="rounded-md">Administrateurs</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-b border-border/70">
               <TableHead>Utilisateur</TableHead>
               <TableHead>Rôle</TableHead>
               <TableHead>Abonné</TableHead>
-              <TableHead>Dernière activité</TableHead>
               <TableHead>Inscription</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -478,7 +487,7 @@ function UserManagement({
           <TableBody>
             {profiles.length > 0 ? (
               profiles.map((profile: Profile) => (
-                <TableRow key={profile.id}>
+                <TableRow key={profile.id} className="border-b border-border/60 last:border-b-0 hover:bg-transparent">
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <span className="font-medium">{profile.full_name || "N/A"}</span>
@@ -488,32 +497,15 @@ function UserManagement({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <button
-                      onClick={() => onToggleRole(profile.id, profile.role)}
-                      className="transition-transform active:scale-95"
-                    >
-                      <Badge
-                        variant={profile.role === "admin" ? "default" : "secondary"}
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
-                      >
-                        {profile.role === "admin" ? "Administrateur" : "Utilisateur"}
-                      </Badge>
-                    </button>
+                    <ConfirmRoleChangeDialog
+                      profile={profile}
+                      onConfirm={() => onToggleRole(profile.id, profile.role)}
+                    />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={profile.is_subscriber}
-                        onCheckedChange={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
-                      />
-                      {profile.is_subscriber && <Crown className="h-3 w-3 text-amber-500" />}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {profile.last_active_at ? format(new Date(profile.last_active_at), "d MMM, HH:mm") : "Jamais"}
-                    </div>
+                    <Badge variant={profile.is_subscriber ? "default" : "secondary"}>
+                      {profile.is_subscriber ? "Oui" : "Non"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     <div className="flex items-center gap-1">
@@ -522,13 +514,17 @@ function UserManagement({
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DeleteUserDialog profile={profile} onDelete={() => onDelete(profile.id)} />
+                    <UserActionsDropdown
+                      profile={profile}
+                      onToggleSubscriber={() => onToggleSubscriber(profile.id, !!profile.is_subscriber)}
+                      onDelete={() => onDelete(profile.id)}
+                    />
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   Aucun utilisateur trouvé.
                 </TableCell>
               </TableRow>
@@ -537,21 +533,43 @@ function UserManagement({
         </Table>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {isFetching ? "Mise à jour..." : `Affichage ${start}-${end} sur ${total}`}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onPreviousPage} disabled={page <= 1 || isFetching}>
-            <ChevronLeft className="h-4 w-4 mr-1" />
+      <div className="mt-4 flex w-full justify-end">
+        <div className="inline-flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onPreviousPage}
+            disabled={page <= 1 || isFetching}
+            className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
             Précédent
           </Button>
-          <span className="text-sm text-muted-foreground min-w-[90px] text-center">
-            Page {page}/{totalPages}
-          </span>
-          <Button variant="outline" size="sm" onClick={onNextPage} disabled={page >= totalPages || isFetching || isPlaceholderData}>
+          {pageNumbers.map((pageNumber) => (
+            <Button
+              key={pageNumber}
+              variant="ghost"
+              size="sm"
+              onClick={() => onPageChange(pageNumber)}
+              disabled={isFetching}
+              className={`h-8 w-8 rounded-md px-0 ${
+                pageNumber === page
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {pageNumber}
+            </Button>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onNextPage}
+            disabled={page >= totalPages || isFetching || isPlaceholderData}
+            className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground disabled:opacity-40"
+          >
             Suivant
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
@@ -559,13 +577,88 @@ function UserManagement({
   );
 }
 
-function DeleteUserDialog({ profile, onDelete }: any) {
+function ConfirmRoleChangeDialog({
+  profile,
+  onConfirm,
+}: {
+  profile: Profile;
+  onConfirm: () => void;
+}) {
+  const targetRole = profile.role === "admin" ? "Utilisateur" : "Administrateur";
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-          <Trash2 className="h-4 w-4" />
+        <button className="transition-transform active:scale-95">
+          <Badge
+            variant={profile.role === "admin" ? "default" : "secondary"}
+            className="cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            {profile.role === "admin" ? "Administrateur" : "Utilisateur"}
+          </Badge>
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirmer le changement de rôle ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            L'utilisateur {profile.email} passera au rôle {targetRole}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>Confirmer</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+function UserActionsDropdown({
+  profile,
+  onToggleSubscriber,
+  onDelete,
+}: {
+  profile: Profile;
+  onToggleSubscriber: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 rounded-md border border-transparent text-muted-foreground transition-colors hover:border-border/60 hover:bg-muted/60 hover:text-foreground"
+        >
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" sideOffset={6} className="min-w-[190px] rounded-lg border-border/70 p-1 shadow-lg">
+        <DropdownMenuLabel className="px-2 py-1 text-xs text-muted-foreground">
+          Actions utilisateur
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onToggleSubscriber} className="cursor-pointer rounded-md">
+          {profile.is_subscriber ? "Retirer abonné" : "Passer abonné"}
+        </DropdownMenuItem>
+        <DeleteUserDialog profile={profile} onDelete={onDelete} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function DeleteUserDialog({ profile, onDelete }: { profile: Profile; onDelete: () => void }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <DropdownMenuItem
+          className="cursor-pointer rounded-md text-destructive focus:text-destructive"
+          onSelect={(event) => event.preventDefault()}
+        >
+          <Trash2 className="h-4 w-4" />
+          Supprimer
+        </DropdownMenuItem>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -576,7 +669,7 @@ function DeleteUserDialog({ profile, onDelete }: any) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction 
+          <AlertDialogAction
             onClick={onDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
