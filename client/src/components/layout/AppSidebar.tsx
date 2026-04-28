@@ -122,29 +122,40 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/20 p-2.5 overflow-hidden">
+      <SidebarFooter className="items-center border-t border-border/20 p-2.5 overflow-hidden group-data-[collapsible=icon]:p-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-start gap-3 px-2.5 cursor-pointer"
-            >
-              <Avatar className="h-9 w-9 shrink-0 rounded-full">
-                {avatarUrl ? <AvatarImage src={avatarUrl} alt={profile?.email || "Avatar utilisateur"} /> : null}
-                <AvatarFallback className="rounded-full bg-primary/10 text-primary">
-                  {avatarInitials}
-                </AvatarFallback>
-              </Avatar>
-              {!isCollapsed && (
-                <>
-                  <div className="grid min-w-0 flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
-                    <span className="truncate font-semibold">{profile?.role === "admin" ? "Administrateur" : "Utilisateur"}</span>
-                    <span className="truncate text-xs">{profile?.email}</span>
-                  </div>
-                  <ChevronRight className="ml-auto size-4 shrink-0" />
-                </>
-              )}
-            </SidebarMenuButton>
+            {isCollapsed ? (
+              <button
+                type="button"
+                className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full p-0 outline-hidden ring-sidebar-ring transition-colors hover:bg-sidebar-accent focus-visible:ring-2 data-[state=open]:bg-sidebar-accent"
+                aria-label="Menu utilisateur"
+              >
+                <Avatar className="h-8 w-8 rounded-full">
+                  {avatarUrl ? <AvatarImage src={avatarUrl} alt={profile?.email || "Avatar utilisateur"} /> : null}
+                  <AvatarFallback className="rounded-full bg-primary/10 text-primary text-xs">
+                    {avatarInitials}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            ) : (
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex items-center justify-start gap-3 px-2.5 cursor-pointer"
+              >
+                <Avatar className="h-9 w-9 shrink-0 rounded-full">
+                  {avatarUrl ? <AvatarImage src={avatarUrl} alt={profile?.email || "Avatar utilisateur"} /> : null}
+                  <AvatarFallback className="rounded-full bg-primary/10 text-primary">
+                    {avatarInitials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid min-w-0 flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
+                  <span className="truncate font-semibold">{profile?.role === "admin" ? "Administrateur" : "Utilisateur"}</span>
+                  <span className="truncate text-xs">{profile?.email}</span>
+                </div>
+                <ChevronRight className="ml-auto size-4 shrink-0" />
+              </SidebarMenuButton>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg border-sidebar-border bg-sidebar p-1 text-sidebar-foreground"
