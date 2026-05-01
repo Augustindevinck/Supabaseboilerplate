@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { supabase } from "@/lib/supabase";
+import { hasSupabaseClientEnv, supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,6 +102,12 @@ export default function AuthPage() {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
+      if (!hasSupabaseClientEnv) {
+        throw new Error(
+          "Configuration Supabase manquante dans le frontend (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY). Vérifie les Secrets Replit et redémarre complètement le Repl.",
+        );
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
