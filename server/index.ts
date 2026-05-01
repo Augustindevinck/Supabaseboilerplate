@@ -1,4 +1,13 @@
-import "dotenv/config";
+import { createRequire } from "module";
+
+// Load .env locally when dotenv is available, without hard-failing in environments
+// that rely only on injected secrets (e.g. Replit Secrets).
+const require = createRequire(import.meta.url);
+try {
+  require("dotenv/config");
+} catch {
+  // no-op: dotenv is optional at runtime
+}
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
