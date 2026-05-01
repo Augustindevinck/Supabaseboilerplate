@@ -155,8 +155,19 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     has_accepted_terms: z.boolean().optional(),
   });
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const missingEnvVars: string[] = [];
+
+  if (!supabaseUrl) missingEnvVars.push("VITE_SUPABASE_URL (or SUPABASE_URL)");
+  if (!serviceRoleKey) missingEnvVars.push("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (missingEnvVars.length > 0) {
+    logger.error(
+      { missingEnvVars },
+      "Supabase admin client is not configured. Check Replit Secrets / .env",
+    );
+  }
 
   const supabaseAdmin =
     supabaseUrl && serviceRoleKey
