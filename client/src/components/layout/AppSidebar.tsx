@@ -149,8 +149,8 @@ export function AppSidebar() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid min-w-0 flex-1 text-left text-sm leading-tight animate-in fade-in duration-300">
-                  <span className="truncate font-semibold">{profile?.role === "admin" ? "Administrateur" : "Utilisateur"}</span>
-                  <span className="truncate text-xs">{profile?.email}</span>
+                  <span className="truncate font-semibold">{displayName}</span>
+                  <span className="truncate text-xs">{displayEmail}</span>
                 </div>
                 <ChevronRight className="ml-auto size-4 shrink-0" />
               </SidebarMenuButton>
@@ -193,7 +193,7 @@ export function AppSidebar() {
             </DropdownMenuItem>
             <div className="my-1 h-px bg-sidebar-border/70" />
             <DropdownMenuItem
-              className="h-9 cursor-pointer rounded-md px-2 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+              className="h-9 cursor-pointer rounded-md px-2 text-sm font-medium text-destructive data-[highlighted]:bg-destructive/10 data-[highlighted]:text-destructive focus:bg-destructive/10 focus:text-destructive"
               onClick={() => signOut()}
             >
               <LogOut className="h-4 w-4 shrink-0" />
