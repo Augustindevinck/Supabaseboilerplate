@@ -1,5 +1,7 @@
 export function translateSupabaseError(error: any): { title: string; description: string } {
   const code = error?.code || error?.message;
+  const message = error?.message || "";
+  const normalizedMessage = message.toLowerCase();
   
   const errorMap: Record<string, { title: string; description: string }> = {
     "Invalid login credentials": {
@@ -7,6 +9,14 @@ export function translateSupabaseError(error: any): { title: string; description
       description: "L'email ou le mot de passe est incorrect. Veuillez réessayer."
     },
     "User already registered": {
+      title: "Compte existant",
+      description: "Un utilisateur est déjà inscrit avec cette adresse email."
+    },
+    "user_already_exists": {
+      title: "Compte existant",
+      description: "Un utilisateur est déjà inscrit avec cette adresse email."
+    },
+    "email_exists": {
       title: "Compte existant",
       description: "Un utilisateur est déjà inscrit avec cette adresse email."
     },
@@ -64,14 +74,24 @@ export function translateSupabaseError(error: any): { title: string; description
     return errorMap["Too many requests"];
   }
 
-  const message = error?.message || "";
+  if (
+    normalizedMessage.includes("already registered") ||
+    normalizedMessage.includes("already been registered") ||
+    normalizedMessage.includes("already exists") ||
+    normalizedMessage.includes("user exists") ||
+    error?.code === "user_already_exists" ||
+    error?.code === "email_exists"
+  ) {
+    return errorMap["User already registered"];
+  }
+
   for (const key in errorMap) {
     if (message.includes(key) || error?.code === key) {
       return errorMap[key];
     }
   }
 
-  if (message.toLowerCase().includes("email")) {
+  if (normalizedMessage.includes("email")) {
     return errorMap["Invalid email"];
   }
 
