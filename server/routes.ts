@@ -269,7 +269,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const [profileResult, authUserResult, sessionsResult] = await Promise.all([
         supabaseAdmin
           .from("profiles")
-          .select("id,email,full_name,avatar_url,role,created_at,last_active_at")
+          .select("id,email,full_name,avatar_url,role,is_subscriber,created_at,last_active_at")
           .eq("id", userId)
           .maybeSingle(),
         supabaseAdmin.auth.admin.getUserById(userId),
@@ -310,6 +310,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
             (typeof authUser?.user_metadata?.full_name === "string" ? authUser.user_metadata.full_name : null),
           avatarUrl: profileResult.data.avatar_url ?? null,
           role: profileResult.data.role,
+          isSubscriber: profileResult.data.is_subscriber,
           createdAt: profileResult.data.created_at,
           lastActiveAt: profileResult.data.last_active_at,
           lastSignInAt: authUser?.last_sign_in_at ?? null,

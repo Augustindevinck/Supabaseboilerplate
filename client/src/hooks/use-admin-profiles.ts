@@ -11,6 +11,7 @@ type AdminUserDetailsResponse = {
     fullName: string | null;
     avatarUrl: string | null;
     role: "user" | "admin";
+    isSubscriber: boolean;
     createdAt: string | null;
     lastActiveAt: string | null;
     lastSignInAt: string | null;

@@ -1,13 +1,16 @@
 import { Profile } from "@shared/schema";
-import { format } from "date-fns";
-import { useMemo } from "react";
+import { format, isToday, isYesterday } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   Clock3,
+  CreditCard,
   Globe,
   Laptop,
   Loader2,
   Mail,
+  Save,
   Trash2,
   ShieldX,
   ShieldCheck,
@@ -25,12 +28,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -47,13 +69,22 @@ type AdminUserDetailsPageProps = {
   userId: string;
 };
 
+type BillingDraft = {
+  isSubscriber: boolean;
+};
+
 function formatDateTime(value: string | null) {
   if (!value) return "N/A";
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "N/A";
 
-  return format(parsed, "dd/MM/yyyy HH:mm");
+  const time = format(parsed, "HH:mm", { locale: fr });
+
+  if (isToday(parsed)) return `Aujourd'hui à ${time}`;
+  if (isYesterday(parsed)) return `Hier à ${time}`;
+
+  return format(parsed, "d MMMM yyyy 'à' HH:mm", { locale: fr });
 }
 
 function providerLabel(provider: string) {
@@ -68,10 +99,13 @@ function providerLabel(provider: string) {
 
 export function AdminUserDetailsPage({ userId }: AdminUserDetailsPageProps) {
   const { toast } = useToast();
-  const { updateProfile } = useProfile();
+  const { updateProfile, isUpdating } = useProfile();
   const { data, isLoading, isError, error, refetch } = useAdminUserDetails(userId);
   const revokeSessionMutation = useRevokeAdminSession(userId);
   const revokeAllMutation = useRevokeAllAdminSessions(userId);
+  const [billingDraft, setBillingDraft] = useState<BillingDraft>({
+    isSubscriber: false,
+  });
 
   const initials = useMemo(() => {
     const displayName = data?.profile.fullName || data?.profile.email || "U";
@@ -84,6 +118,56 @@ export function AdminUserDetailsPage({ userId }: AdminUserDetailsPageProps) {
       .join("")
       .toUpperCase();
   }, [data?.profile.fullName, data?.profile.email]);
+
+  const currentBilling = useMemo<BillingDraft | null>(() => {
+    if (!data) return null;
+
+    return {
+      isSubscriber: data.profile.isSubscriber,
+    };
+  }, [data]);
+
+  useEffect(() => {
+    if (currentBilling) {
+      setBillingDraft(currentBilling);
+    }
+  }, [currentBilling]);
+
+  const isBillingDirty =
+    !!currentBilling && billingDraft.isSubscriber !== currentBilling.isSubscriber;
+
+  const handlePlanChange = (plan: string) => {
+    if (!plan) return;
+
+    setBillingDraft((current) => ({
+      ...current,
+      isSubscriber: plan === "pro",
+    }));
+  };
+
+  const handleSaveBilling = async () => {
+    if (!data) return;
+
+    try {
+      await updateProfile({
+        id: data.profile.id,
+        updates: {
+          is_subscriber: billingDraft.isSubscriber,
+        },
+      });
+      await refetch();
+      toast({
+        title: "Abonnement mis a jour",
+        description: "Le plan a ete sauvegarde.",
+      });
+    } catch (mutationError: any) {
+      toast({
+        variant: "destructive",
+        title: "Echec de la mise a jour",
+        description: mutationError?.message ?? "Impossible de mettre a jour l'abonnement.",
+      });
+    }
+  };
 
   const handleRevokeSession = async (sessionId: string) => {
     try {
@@ -257,7 +341,7 @@ export function AdminUserDetailsPage({ userId }: AdminUserDetailsPageProps) {
                   full_name: data.profile.fullName,
                   avatar_url: null,
                   role: data.profile.role,
-                  is_subscriber: false,
+                  is_subscriber: data.profile.isSubscriber,
                   stripe_customer_id: null,
                   stripe_subscription_id: null,
                   subscription_status: null,
@@ -287,20 +371,102 @@ export function AdminUserDetailsPage({ userId }: AdminUserDetailsPageProps) {
 
       <Card className="border-border/60">
         <CardHeader className="pb-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                Abonnement
+              </CardTitle>
+              <CardDescription>Gerez le plan de l'utilisateur.</CardDescription>
+            </div>
+            <Badge variant={billingDraft.isSubscriber ? "default" : "secondary"}>
+              {billingDraft.isSubscriber ? "Plan Pro" : "Plan Gratuit"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <Label htmlFor="admin-user-plan">Plan</Label>
+              <Select
+                value={billingDraft.isSubscriber ? "pro" : "free"}
+                onValueChange={handlePlanChange}
+                disabled={isUpdating}
+              >
+                <SelectTrigger
+                  id="admin-user-plan"
+                  className="w-full sm:w-[200px] h-10 rounded-md border-sidebar-border bg-sidebar px-3 text-sidebar-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent
+                  align="end"
+                  className="min-w-[200px] rounded-lg border-sidebar-border bg-sidebar p-1 text-sidebar-foreground"
+                >
+                  <SelectItem
+                    value="free"
+                    className="h-9 cursor-pointer rounded-md pr-2 pl-8 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground"
+                  >
+                    Gratuit
+                  </SelectItem>
+                  <SelectItem
+                    value="pro"
+                    className="h-9 cursor-pointer rounded-md pr-2 pl-8 text-sm font-medium data-[highlighted]:bg-sidebar-accent data-[highlighted]:text-sidebar-accent-foreground"
+                  >
+                    Pro
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button className="sm:min-w-36" onClick={handleSaveBilling} disabled={!isBillingDirty || isUpdating}>
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Sauvegarder
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/60">
+        <CardHeader className="pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle className="text-xl">Sessions actives</CardTitle>
               <CardDescription>Liste des sessions actives et expirées de l’utilisateur.</CardDescription>
             </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleRevokeAll}
-              disabled={revokeAllMutation.isPending || data.sessions.length === 0}
-            >
-              {revokeAllMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldX className="h-4 w-4" />}
-              Révoquer toutes les sessions
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={revokeAllMutation.isPending || data.sessions.length === 0}
+                >
+                  {revokeAllMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShieldX className="h-4 w-4" />
+                  )}
+                  Révoquer toutes les sessions
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Révoquer toutes les sessions ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    L'utilisateur sera déconnecté de tous ses appareils. Cette action ne peut pas être annulée.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleRevokeAll}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Révoquer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
@@ -349,20 +515,41 @@ export function AdminUserDetailsPage({ userId }: AdminUserDetailsPageProps) {
                       </TableCell>
                       <TableCell className="text-sm">{formatDateTime(session.createdAt)}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleRevokeSession(session.id)}
-                          disabled={revokeSessionMutation.isPending}
-                          aria-label="Supprimer la session"
-                        >
-                          {revokeSessionMutation.isPending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              disabled={revokeSessionMutation.isPending}
+                              aria-label="Supprimer la session"
+                            >
+                              {revokeSessionMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette session ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                La session {session.device} sera révoquée immédiatement
+                                {session.ipAddress ? ` depuis l'adresse IP ${session.ipAddress}` : ""}.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRevokeSession(session.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))
