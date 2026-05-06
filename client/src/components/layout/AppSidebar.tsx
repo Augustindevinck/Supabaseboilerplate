@@ -36,9 +36,8 @@ export function AppSidebar() {
   const { state, isMobile } = useSidebar();
 
   const isCollapsed = state === "collapsed" && !isMobile;
-  const profileAvatarUrl = (profile as any)?.avatar_url as string | undefined;
   const avatarUrl =
-    profileAvatarUrl ||
+    profile?.avatar_url ||
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     user?.user_metadata?.photoURL ||

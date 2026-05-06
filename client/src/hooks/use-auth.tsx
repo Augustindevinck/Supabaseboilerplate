@@ -10,6 +10,7 @@ type Profile = {
   id: string;
   email: string | null;
   full_name: string | null;
+  avatar_url: string | null;
   role: "user" | "admin";
   is_subscriber: boolean;
   has_accepted_terms: boolean;
@@ -95,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { 
           id: user.id, 
           email: user.email ?? null, 
+          full_name: null,
+          avatar_url: null,
           role: "user", 
           is_subscriber: false,
           has_accepted_terms: false 
