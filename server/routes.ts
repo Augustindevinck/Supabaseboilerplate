@@ -393,10 +393,15 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
-  app.get("/api/debug/profiles", async (_req, res) => {
+  app.get("/api/debug/profiles", async (req, res) => {
     try {
       if (!supabaseAdmin) {
         return res.status(500).json({ message: "Supabase credentials not configured" });
+      }
+
+      const adminCheck = await requireAdmin(req);
+      if (!adminCheck.ok) {
+        return res.status(adminCheck.status).json({ message: adminCheck.message });
       }
 
       const { data, error } = await supabaseAdmin.from("profiles").select("*");
@@ -413,10 +418,15 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
   });
 
-  app.get("/api/debug/auth-users", async (_req, res) => {
+  app.get("/api/debug/auth-users", async (req, res) => {
     try {
       if (!supabaseAdmin) {
         return res.status(500).json({ message: "Supabase credentials not configured" });
+      }
+
+      const adminCheck = await requireAdmin(req);
+      if (!adminCheck.ok) {
+        return res.status(adminCheck.status).json({ message: adminCheck.message });
       }
 
       const { data, error } = await supabaseAdmin.auth.admin.listUsers();
